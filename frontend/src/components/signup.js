@@ -1,37 +1,42 @@
-import React, { useState } from 'react';
-import { Button, Form, Alert } from 'react-bootstrap';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
+import PropTypes from "prop-types";
+import React, { useState } from "react";
+import { Button, Form, Alert } from "react-bootstrap";
+import axios from "axios";
+import { Link } from "react-router-dom";
 
 const Signup = ({ onSignup }) => {
-  const [formData, setFormData] = useState({ username: '', password: '' });
-  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({ username: "", password: "" });
+  const [error, setError] = useState("");
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-
   const handleSignup = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     try {
-        const response = await axios.post('http://localhost:8080/api/auth/signup', formData);
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/signup",
+        formData
+      );
 
-        if (response.data === 'User registered successfully!') {
-            console.log('User registered successfully');
-            onSignup(formData.username); 
-        } else {
-            setError(response.data);
-        }
+      if (response.data === "User registered successfully!") {
+        console.log("User registered successfully");
+        onSignup(formData.username);
+      } else {
+        setError(response.data);
+      }
     } catch (error) {
-        console.error('Error during registration', error);
-        setError(error.response?.data || 'An error occurred during registration. Please try again.');
+      console.error("Error during registration", error);
+      setError(
+        error.response?.data ||
+          "An error occurred during registration. Please try again."
+      );
     }
   };
-
 
   return (
     <div>
@@ -62,15 +67,19 @@ const Signup = ({ onSignup }) => {
           />
         </Form.Group>
 
-        <Button variant="primary" type="submit" style={{ marginTop: '20px' }}>
+        <Button variant="primary" type="submit" style={{ marginTop: "20px" }}>
           Signup
         </Button>
       </Form>
       <p className="mt-3">
-    Already have an account? <Link to="/login">Login</Link>
-</p>
+        Already have an account? <Link to="/login">Login</Link>
+      </p>
     </div>
   );
 };
 
 export default Signup;
+
+Signup.propTypes = {
+  onSignup: PropTypes.func.isRequired,
+};
