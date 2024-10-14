@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import { trackExercise } from "../api";
@@ -121,3 +122,7 @@ const TrackExercise = ({ currentUser }) => {
 };
 
 export default TrackExercise;
+
+TrackExercise.propTypes = {
+  currentUser: PropTypes.string.isRequired,
+};
