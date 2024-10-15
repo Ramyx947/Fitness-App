@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        working-directory: ./
         uses: actions/checkout@v4
 
       - name: Set up Node.js using nvm
