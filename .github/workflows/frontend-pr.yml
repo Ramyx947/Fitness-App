@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Node.js using nvm
-        shell: bash --login {0}
+        shell: bash -l {0}
         run: nvm install
 
       - name: Install dependencies
