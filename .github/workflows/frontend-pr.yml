@@ -1,0 +1,19 @@
+name: Frontend Pull Request
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js using nvm
+        run: nvm install
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm install
