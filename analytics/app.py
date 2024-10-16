@@ -1,26 +1,160 @@
 from dotenv import load_dotenv
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, jsonify, request
 from pymongo import MongoClient
-from flask_pymongo import PyMongo
 from flask_cors import CORS
-from urllib.parse import quote_plus
 from bson import json_util
-import traceback
-import logging
 import os
+import logging
 from datetime import datetime, timedelta
+from ariadne import load_schema_from_path, make_executable_schema, graphql_sync, QueryType
 
+
+# set up flask app
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}},
-     methods="GET,HEAD,POST,OPTIONS,PUT,PATCH,DELETE")
+     methods="GET,HEAD,POST,OPTIONS,PUT,PATCH,DELETE")\
 
+# load env vars
 load_dotenv()
 mongo_uri = os.getenv('MONGO_URI')
 mongo_db = os.getenv('MONGO_DB')
 
+# set up db client and db
 client = MongoClient(mongo_uri)
 db = client[mongo_db]
 
+# initialise the query type, load the schema and make it executable
+query = QueryType()
+type_defs = load_schema_from_path("schema.graphql")
+
+# Define the HTML for GraphQL Playground
+# TODO: move this into templates/ and load from there
+PLAYGROUND_HTML = '''
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset=utf-8/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GraphQL Playground</title>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/graphql-playground-react/build/static/css/index.css" />
+    <link rel="shortcut icon" href="//cdn.jsdelivr.net/npm/graphql-playground-react/build/favicon.png" />
+    <script src="//cdn.jsdelivr.net/npm/graphql-playground-react/build/static/js/middleware.js"></script>
+</head>
+
+<body>
+    <style>
+        body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #root {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 32px;
+        }
+    </style>
+    <div id="root">
+        <div class="loading">Loading
+            <img src='//cdn.jsdelivr.net/npm/graphql-playground-react/build/favicon.png' alt="Loading..." />
+        </div>
+    </div>
+    <script>
+        window.addEventListener('load', function (event) {
+            const root = document.getElementById('root');
+            const playground = GraphQLPlayground.init(root, {
+                endpoint: '/api/graphql',
+            });
+        });
+    </script>
+</body>
+
+</html>
+'''
+
+
+@app.route('/api/graphql', methods=['GET'])
+def graphql_playground():
+    print("Received a GET request")
+    return PLAYGROUND_HTML, 200
+
+# set up the graphql server
+@app.route('/api/graphql', methods=['POST'])
+def graphql_server():
+    print("Received a POST request ...")
+    data = request.get_json()
+    success, result = graphql_sync(
+        schema,
+        data, 
+        context_value=request, 
+        debug=True
+    )
+    status_code = 200 if success else 400
+    return jsonify(result), status_code
+
+# define the resolvers for the queries defined in the schema
+@query.field("stats")
+def resolve_stats(_, info):
+    try:
+        print("Resolving the list stats info")
+        loadedStats = stats()
+        print(loadedStats)
+        # payload matches expected output for the stats query in schema
+        payload = {
+            "success": True, 
+            "results": loadedStats
+        }
+    # TODO: could use a more specific Exception here
+    except Exception as error:
+        payload = {
+            "success": False,
+            "errors": [str(error)]
+        }
+    return payload
+
+@query.field("filteredStats")
+def resolve_filteredStats(*_, name=None):
+    """
+    Function to resolve the filteredStats graphql query
+
+    Arguments:
+    - "*_" : Any number of positional arguments, but not required. 
+
+             The "*" collects all positional arguments into a tuple
+             where _ is the name given to the tuple. In this case, it is used to indicate that
+             the variable's value is intentionally ignored or unused.
+
+    - name: Keyword argument with a default value set to None. 
+
+            The caller can provide a value for name, but if they don't, 
+            the default value None will be used.
+    """
+    try:
+        print("Resolving the list filtered stats info")
+        userStats = user_stats(name)
+        print(userStats)
+        # payload matches expected output for the filteredStats query in schema
+        payload = {
+            "success": True,
+            "results": userStats
+        }
+    # TODO: could use a more specific Exception here
+    except Exception as error:
+        payload = {
+            "success": False,
+            "results": [str(error)]
+        }
+    return payload
 
 @app.route('/')
 def index():
@@ -62,7 +196,7 @@ def stats():
     ]
 
     stats = list(db.exercises.aggregate(pipeline))
-    return jsonify(stats=stats)
+    return stats
 
 
 @app.route('/stats/<username>', methods=['GET'])
@@ -101,9 +235,11 @@ def user_stats(username):
     ]
 
     stats = list(db.exercises.aggregate(pipeline))
-    return jsonify(stats=stats)
+    return stats
 
+schema = make_executable_schema(type_defs, query)
 
+# TODO: set up graphql query for this endpoint too
 @app.route('/stats/weekly/', methods=['GET'])
 def weekly_user_stats():
     username = request.args.get('user')
@@ -147,14 +283,8 @@ def weekly_user_stats():
         }
     ]
 
-    try:
-        stats = list(db.exercises.aggregate(pipeline))
-        return jsonify(stats=stats)
-    except Exception as e:
-        current_app.logger.error(f"An error occurred while querying MongoDB: {e}")
-        traceback.print_exc()
-        return jsonify(error="An internal error occurred"), 500
-
+    stats = list(db.exercises.aggregate(pipeline))
+    return jsonify(stats=stats)
 
 
 if __name__ == "__main__":
