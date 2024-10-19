@@ -6,9 +6,9 @@ require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 5300;
-const baseUri = process.env.MONGODB_URI ||config.mongoUri;
-const database = process.env.MONGODB_DB ||config.mongoDb;
-const mongoUri = `${baseUri}/${database}`;
+const baseUri = process.env.MONGO_URI || config.mongoUri;
+const database = process.env.MONGO_DB || config.mongoDb;
+const mongoUri =  `${baseUri}/${database}`;
 
 // Middleware setup
 app.use(cors());

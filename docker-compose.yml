@@ -15,8 +15,8 @@ services:
       dockerfile: Dockerfile
     environment:
       - NODE_ENV=development
-      - MONGO_URI=mongodb://root:cfgmla23@mongodb:27017 
       - MONGO_DB=activity
+      - MONGO_URI=mongodb://root:cfgmla23@mongodb:27017
     ports:
       - "5300:5300"
     depends_on:
@@ -30,8 +30,8 @@ services:
       dockerfile: Dockerfile
     environment:
       - NODE_ENV=development
-      - MONGO_URI=mongodb://root:cfgmla23@mongodb:27017
       - MONGO_DB=activity
+      - MONGO_URI=mongodb://root:cfgmla23@mongodb:27017
     ports:
       - "5050:5050"
     depends_on:
