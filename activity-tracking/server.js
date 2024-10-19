@@ -24,6 +24,7 @@ const connection = mongoose.connection;
 
 // Event listener for MongoDB connection errors
 connection.on('error', (error) => {
+  console.error("mongoUri", mongoUri)
   console.error("MongoDB connection error:", error);
 });
 
