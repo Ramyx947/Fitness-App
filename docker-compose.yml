@@ -1,4 +1,4 @@
-version: "3.9"
+version: '3.8'
 services:
   frontend:
     build:
@@ -8,14 +8,13 @@ services:
       - "80:80"
     networks:
       - app-network
+
   activity-tracking:
     build:
       context: ./activity-tracking
       dockerfile: Dockerfile
     environment:
-      - NODE_ENV
-      - MONGO_DB
-      - MONGO_URI
+      - NODE_ENV=development
     ports:
       - "5300:5300"
     depends_on:
@@ -28,9 +27,8 @@ services:
       context: ./analytics
       dockerfile: Dockerfile
     environment:
-      - NODE_ENV=${NODE_ENV_DEV}
-      - MONGO_URI=${MONGO_URI_DEV}
-      - MONGO_DB=${MONGO_DB_DEV}
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://root:cfgmla23@mongodb:27017
     ports:
       - "5050:5050"
     depends_on:
@@ -43,8 +41,8 @@ services:
       context: ./authservice
       dockerfile: Dockerfile
     environment:
-      - SPRING_DATA_MONGODB_DATABASE=${SPRING_DATA_MONGODB_DATABASE_DEV}
-      - SPRING_DATA_MONGODB_URI=${MONGO_URI_DEV}
+      - SPRING_DATA_MONGODB_DATABASE=test
+      - SPRING_DATA_MONGODB_URI=mongodb://root:cfgmla23@mongodb:27017
     ports:
       - "8080:8080"
     depends_on:
@@ -55,8 +53,8 @@ services:
   mongodb:
     image: mongo:latest
     environment:
-    - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-    - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=cfgmla23
     ports:
       - "27017:27017"
     volumes:
