@@ -114,7 +114,6 @@ def resolve_stats(_, info):
             "success": True, 
             "results": loadedStats
         }
-    # TODO: could use a more specific Exception here
     except Exception as error:
         payload = {
             "success": False,
@@ -162,8 +161,6 @@ def index():
     exercises_list = list(exercises)
     return json_util.dumps(exercises_list)
 
-
-@app.route('/stats')
 def stats():
     pipeline = [
         {
@@ -239,8 +236,7 @@ def user_stats(username):
 
 schema = make_executable_schema(type_defs, query)
 
-# TODO: set up graphql query for this endpoint too
-@app.route('/stats/weekly/', methods=['GET'])
+@app.route('/weekly/', methods=['GET'])
 def weekly_user_stats():
     username = request.args.get('user')
     start_date_str = request.args.get('start')
