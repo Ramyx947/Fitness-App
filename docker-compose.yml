@@ -36,6 +36,20 @@ services:
     networks:
       - app-network
 
+  recipes:
+    build:
+      context: ./recipes
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://root:cfgmla23@mongodb:27017
+    ports:
+      - "5050:5051"
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+
   authservice:
     build:
       context: ./authservice
