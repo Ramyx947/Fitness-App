@@ -8,7 +8,7 @@ type Stats {
 }
 
 type Exercise {
-    exerciseType: String
+    exerciseType: String!
     totalDuration: Int
 }
 

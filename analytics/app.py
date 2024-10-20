@@ -1,5 +1,6 @@
+import traceback
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request
+from flask import Flask, current_app, jsonify, request
 from pymongo import MongoClient
 from flask_cors import CORS
 from bson import json_util
@@ -279,8 +280,13 @@ def weekly_user_stats():
         }
     ]
 
-    stats = list(db.exercises.aggregate(pipeline))
-    return jsonify(stats=stats)
+    try:
+        stats = list(db.exercises.aggregate(pipeline))
+        return jsonify(stats=stats)
+    except Exception as e:
+        current_app.logger.error(f"An error occurred while querying MongoDB: {e}")
+        traceback.print_exc()
+        return jsonify(error="An internal error occurred"), 500
 
 
 if __name__ == "__main__":
