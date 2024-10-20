@@ -30,8 +30,8 @@ const TrackExercise = ({ currentUser }) => {
     };
 
     try {
-      const response = await trackExercise(dataToSubmit);
-      console.log(response.data);
+      const response = await trackExercise(dataToSubmit, useGraphQL);
+      console.log(response);
 
       setState({
         exerciseType: "",
@@ -40,10 +40,16 @@ const TrackExercise = ({ currentUser }) => {
         date: new Date(),
       });
 
-      setMessage("Activity logged successfully! Well done!");
+      setMessage(
+        useGraphQL
+          ? "Activity logged successfully using GraphQL! Well done!"
+          : "Activity logged successfully using REST! Well done!"
+      );
       setTimeout(() => setMessage(""), 2000);
     } catch (error) {
       console.error("There was an error logging your activity!", error);
+      setMessage(`Error: ${error.message}`);
+      setTimeout(() => setMessage(""), 4000);
     }
   };
 
@@ -121,8 +127,9 @@ const TrackExercise = ({ currentUser }) => {
   );
 };
 
-export default TrackExercise;
-
 TrackExercise.propTypes = {
   currentUser: PropTypes.string.isRequired,
+  useGraphQL: PropTypes.bool.isRequired,
 };
+
+export default TrackExercise;

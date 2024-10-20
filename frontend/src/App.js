@@ -14,7 +14,11 @@ import logo from './img/CFG_logo.png'; // Update the path to your logo file
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState(''); 
+  const [currentUser, setCurrentUser] = useState('');
+  const [useGraphQL, setUseGraphQL] = useState(() => {
+    const savedFlag = localStorage.getItem('useGraphQL');
+    return savedFlag === 'true' ? true : false;
+  });
 
   const handleLogout = () => {
     setIsLoggedIn(false); 
@@ -25,6 +29,14 @@ function App() {
     setIsLoggedIn(true);
     setCurrentUser(username);
   };
+  
+  // toggles useGraphQL flag and updates localStorage
+  const toggleFeatureFlag = () => {
+    setUseGraphQL((prevFlag) => {
+      localStorage.setItem('useGraphQL', !prevFlag); // using localStorage for data persistence
+      return !prevFlag;
+    });
+  };
 
   return (
     <div className="App">
@@ -34,7 +46,15 @@ function App() {
           <img src={logo} alt="CFG Fitness App Logo" id="appLogo" />
         </div>
 
-        {isLoggedIn && <NavbarComponent onLogout={handleLogout} />}
+        {/* {isLoggedIn && <NavbarComponent onLogout={handleLogout} />} */}
+        {/* If user is loggedInm the NavComponent is rendered, if false, user redirected to login */}
+        {isLoggedIn && (
+          <NavbarComponent
+            onLogout={handleLogout}
+            useGraphQL={useGraphQL} // props passing to navbar component
+            toggleFeatureFlag={toggleFeatureFlag}
+          />
+        )}
 
         <div className="componentContainer">
           <Routes>
@@ -43,8 +63,22 @@ function App() {
               setIsLoggedIn(true);
               setCurrentUser(username);
             }} />} />
-            <Route path="/trackExercise" element={isLoggedIn ? <TrackExercise currentUser={currentUser} /> : <Navigate to="/login" />} />
-            <Route path="/statistics" element={isLoggedIn ? <Statistics currentUser={currentUser} /> : <Navigate to="/login" />} />
+            {/* <Route path="/trackExercise" element={isLoggedIn ? <TrackExercise currentUser={currentUser} /> : <Navigate to="/login" />} /> */}
+            {/* <Route path="/statistics" element={isLoggedIn ? <Statistics currentUser={currentUser} /> : <Navigate to="/login" />} />? */}
+            <Route path="/trackExercise" element={ isLoggedIn ? (
+                  <TrackExercise currentUser={currentUser} useGraphQL={useGraphQL} />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+            <Route path="/statistics" element={ isLoggedIn ? (  // if user is logged in
+                  <Statistics currentUser={currentUser} useGraphQL={useGraphQL} /> // props passed: currentUser, useGraphQL flag
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
             <Route path="/journal" element={isLoggedIn ? <Journal currentUser={currentUser} /> : <Navigate to="/login" />} />
             <Route path="/" element={isLoggedIn ? <Navigate to="/trackExercise" /> : <Navigate to="/login" />} />
           </Routes>

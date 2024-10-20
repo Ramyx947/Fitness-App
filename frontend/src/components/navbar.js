@@ -1,9 +1,9 @@
 import PropTypes from "prop-types";
 import React from "react";
-import { Navbar, Nav } from "react-bootstrap";
+import { Navbar, Nav, Form  } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
-const NavbarComponent = ({ onLogout }) => {
+const NavbarComponent = ({ onLogout, useGraphQL, toggleFeatureFlag }) => {
   const navigate = useNavigate();
 
   const onNavigate = (route) => {
@@ -52,13 +52,25 @@ const NavbarComponent = ({ onLogout }) => {
             </Nav.Link>
           </Nav>
         </Nav>
+        <Form inline>
+          <Form.Check
+            type="switch"
+            id="feature-flag-switch"
+            label="Use GraphQL"
+            checked={useGraphQL}
+            onChange={toggleFeatureFlag}
+          />
+        </Form>
       </Navbar.Collapse>
     </Navbar>
   );
 };
 
-export default NavbarComponent;
-
 NavbarComponent.propTypes = {
   onLogout: PropTypes.func.isRequired,
+  useGraphQL: PropTypes.bool.isRequired,
+  toggleFeatureFlag: PropTypes.func.isRequired,
 };
+
+
+export default NavbarComponent;
