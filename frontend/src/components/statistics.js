@@ -5,46 +5,18 @@ import "./statistics.css";
 
 const Statistics = ({ currentUser }) => {
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null)
 
   useEffect(() => {
-    const url = `http://localhost:5050/api/graphql`;
-    const query = `
-    query {
-      filteredStats(name: "${currentUser}") {
-        success
-        errors
-        results {
-            username
-            exercises {
-                exerciseType
-                totalDuration
-           } }
-    } }
-  `;
-
-    console.log(`Sending request to ${url} with query:`, query); // Log before the request
+    const url = `http://localhost:5050/stats/${currentUser}`;
 
     axios
-      .post(url, {
-        query: query,
-      })
+      .get(url)
       .then((response) => {
-        const result = response.data.data.filteredStats;
-        if (result.success) {
-          setData(result.results);
-        } else {
-          setError(result.errors);
-        }
+        setData(response.data.stats);
       })
       .catch((error) => {
-        console.error("There was an error fetching the data", error);
-        setError("Network or sever error");
-      })
-      .finally(() => {
-        setLoading(false);
-      })
+        console.error("There was an error fetching the data!", error);
+      });
   }, [currentUser]);
 
   const currentUserData = data.find((item) => item.username === currentUser);
@@ -52,11 +24,7 @@ const Statistics = ({ currentUser }) => {
   return (
     <div className="stats-container">
       <h4>Well done, {currentUser}! This is your overall effort:</h4>
-      {loading ? (
-        <p>Loading data...</p>
-      ) : error ? (
-        <p>Error: {error}</p>
-      ) : currentUserData ? (
+      {currentUserData ? (
         currentUserData.exercises.map((item, index) => (
           <div key={index} className="exercise-data">
             <div>
