@@ -4,18 +4,18 @@ schema {
 
 type RecipeItem {
     itemName: String
-    amount: int
+    amount: Int
 }
 
 type NutrientToAmount {
     nutrient: String
-    amount: int
+    amount: Int
 }
 
 type Recipe {
     recipeName: String
     ingredients: [RecipeItem]
-    calories: int
+    calories: Int
     nutrients: [NutrientToAmount]
 }
 
