@@ -21,6 +21,22 @@ npm install
 nodemon server
 ```
 
+## To run/build with Docker Compose
+### Building the service
+```sh
+docker-compose build activity-tracking
+```
+
+### Start the service
+```sh
+docker-compose up activity-tracking
+```
+
+### Stop the service
+```sh
+docker-compose down activity-tracking
+```
+
 ## To run the tests
 To run Jest tests
 ```sh
