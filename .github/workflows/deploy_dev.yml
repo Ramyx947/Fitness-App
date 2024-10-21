@@ -1,0 +1,137 @@
+# ––––––––––––––––––––––––––––––––
+# This workflow builds and pushes Docker images to Docker Hub.
+# It runs automatically when there is a push to the develop branch.
+# Docker images are built and pushed only for services that have changes in their directories.
+# It also checks commit messages for the service's name to determine if the service needs rebuilding.
+# Ensure that DOCKER_USERNAME and DOCKER_PASSWORD are added to GitHub secrets for authentication.
+# ––––––––––––––––––––––––––––––––
+name: Test Deploy to Docker Hub
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+    types: [opened, synchronize, reopened, closed]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: false
+        default: 'develop'
+
+jobs:
+  determine_changes:
+    name: Determine Changed Services
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.set_services.outputs.services }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Determine Changed Services
+        id: filter
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+            authservice:
+              - 'authservice/**'
+            activity-tracking:
+              - 'activity-tracking/**'
+            analytics:
+              - 'analytics/**'
+      - name: Set Services Output
+        run: |
+         SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r 'keys[] | select(. != "default")' | paste -sd "," -)
+         echo "services=${SERVICES}" >> $GITHUB_OUTPUT
+      - name: Debug Services Output
+        run: |
+          echo "Changed services: ${{ steps.set_services.outputs.services }}"
+ 
+
+  # Separate Lint Jobs for Each Service
+
+  # lint_frontend:
+  #   name: Lint Frontend
+  #   uses: ./.github/workflows/lint.yml
+  #   with:
+  #     service: frontend
+  #     language: node
+  #     working_directory: frontend
+
+  # lint_authservice:
+  #   name: Lint AuthService
+  #   uses: ./.github/workflows/lint.yml
+  #   with:
+  #     service: authservice
+  #     language: java
+  #     working_directory: authservice
+
+  lint_activity_tracking:
+    name: Lint Activity Tracking
+    uses: ./.github/workflows/lint.yml
+    with:
+      service: activity-tracking
+      language: node
+      working_directory: activity-tracking
+
+  lint_analytics:
+    name: Lint Analytics
+    uses: ./.github/workflows/lint.yml
+    with:
+      service: analytics
+      language: python
+      working_directory: analytics
+
+  test-build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV_DEV: ${{ secrets.NODE_ENV_DEV }}
+      MONGO_DB_DEV: ${{ secrets.MONGO_DB_DEV }}
+      MONGO_URI_DEV: ${{ secrets.MONGO_URI_DEV }}
+      SPRING_DATA_MONGODB_DATABASE_DEV: ${{ secrets.SPRING_DATA_MONGODB_DATABASE_DEV }}
+      MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
+      MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ hashFiles('docker-compose.yml', 'docker-compose.develop.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+    
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker images
+        run: |
+          docker-compose -f docker-compose.yml -f docker-compose.develop.yml build
+      - name: Push Docker images
+        run: |
+          docker-compose -f docker-compose.yml -f docker-compose.develop.yml push
