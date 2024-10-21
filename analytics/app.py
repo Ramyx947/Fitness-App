@@ -1,6 +1,6 @@
 import traceback
 from dotenv import load_dotenv
-from flask import Flask, current_app, jsonify, request
+from flask import Flask, current_app, json, jsonify, request
 from pymongo import MongoClient
 from flask_cors import CORS
 from bson import json_util
@@ -27,67 +27,7 @@ db = client[mongo_db]
 # initialise the query type, load the schema and make it executable
 query = QueryType()
 type_defs = load_schema_from_path("schema.graphql")
-
-# Define the HTML for GraphQL Playground
-# TODO: move this into templates/ and load from there
-PLAYGROUND_HTML = '''
-<!DOCTYPE html>
-<html>
-
-<head>
-    <meta charset=utf-8/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GraphQL Playground</title>
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/graphql-playground-react/build/static/css/index.css" />
-    <link rel="shortcut icon" href="//cdn.jsdelivr.net/npm/graphql-playground-react/build/favicon.png" />
-    <script src="//cdn.jsdelivr.net/npm/graphql-playground-react/build/static/js/middleware.js"></script>
-</head>
-
-<body>
-    <style>
-        body {
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            overflow: hidden;
-        }
-
-        #root {
-            height: 100%;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .loading {
-            font-family: 'Open Sans', sans-serif;
-            font-size: 32px;
-        }
-    </style>
-    <div id="root">
-        <div class="loading">Loading
-            <img src='//cdn.jsdelivr.net/npm/graphql-playground-react/build/favicon.png' alt="Loading..." />
-        </div>
-    </div>
-    <script>
-        window.addEventListener('load', function (event) {
-            const root = document.getElementById('root');
-            const playground = GraphQLPlayground.init(root, {
-                endpoint: '/api/graphql',
-            });
-        });
-    </script>
-</body>
-
-</html>
-'''
-
-
-@app.route('/api/graphql', methods=['GET'])
-def graphql_playground():
-    print("Received a GET request")
-    return PLAYGROUND_HTML, 200
+schema = make_executable_schema(type_defs, query)
 
 # set up the graphql server
 @app.route('/api/graphql', methods=['POST'])
@@ -103,17 +43,28 @@ def graphql_server():
     status_code = 200 if success else 400
     return jsonify(result), status_code
 
+# Define the HTML for GraphQL Playground
+GRAPHQL_PLAYGROUND_HTML_FP = "templates/graphql_playground.html"
+with open(GRAPHQL_PLAYGROUND_HTML_FP, 'r', encoding='utf-8') as file:
+    graphql_playground_html_content = file.read()
+
+# graphql playground for health check
+@app.route('/api/graphql', methods=['GET'])
+def graphql_playground():
+    print("Received a GET request")
+    return graphql_playground_html_content, 200
+
 # define the resolvers for the queries defined in the schema
 @query.field("stats")
 def resolve_stats(_, info):
     try:
         print("Resolving the list stats info")
-        loadedStats = stats()
-        print(loadedStats)
-        # payload matches expected output for the stats query in schema
+        loadedStats_json = stats()
+        loadedStats_text = json.loads(loadedStats_json)
+        print(loadedStats_text)
         payload = {
             "success": True, 
-            "results": loadedStats
+            "results": loadedStats_text
         }
     except Exception as error:
         payload = {
@@ -124,31 +75,15 @@ def resolve_stats(_, info):
 
 @query.field("filteredStats")
 def resolve_filteredStats(*_, name=None):
-    """
-    Function to resolve the filteredStats graphql query
-
-    Arguments:
-    - "*_" : Any number of positional arguments, but not required. 
-
-             The "*" collects all positional arguments into a tuple
-             where _ is the name given to the tuple. In this case, it is used to indicate that
-             the variable's value is intentionally ignored or unused.
-
-    - name: Keyword argument with a default value set to None. 
-
-            The caller can provide a value for name, but if they don't, 
-            the default value None will be used.
-    """
     try:
         print("Resolving the list filtered stats info")
-        userStats = user_stats(name)
-        print(userStats)
-        # payload matches expected output for the filteredStats query in schema
+        userStats_json = user_stats(name)
+        userStats_text = json.loads(userStats_json)
+        print(userStats_text)
         payload = {
             "success": True,
-            "results": userStats
+            "results": userStats_text
         }
-    # TODO: could use a more specific Exception here
     except Exception as error:
         payload = {
             "success": False,
@@ -156,12 +91,15 @@ def resolve_filteredStats(*_, name=None):
         }
     return payload
 
+# rest endpoint serving as a health check
 @app.route('/')
 def index():
     exercises = db.exercises.find()
     exercises_list = list(exercises)
     return json_util.dumps(exercises_list)
 
+# keeping rest endpoint in addition to graphql to test both with featureflag
+@app.route('/stats')
 def stats():
     pipeline = [
         {
@@ -194,9 +132,9 @@ def stats():
     ]
 
     stats = list(db.exercises.aggregate(pipeline))
-    return stats
+    return jsonify(stats=stats)
 
-
+# keeping rest endpoint in addition to graphql to test both with featureflag
 @app.route('/stats/<username>', methods=['GET'])
 def user_stats(username):
     pipeline = [
@@ -233,11 +171,11 @@ def user_stats(username):
     ]
 
     stats = list(db.exercises.aggregate(pipeline))
-    return stats
+    return jsonify(stats=stats)
 
-schema = make_executable_schema(type_defs, query)
 
-@app.route('/weekly/', methods=['GET'])
+# no graphql endpoint for this functionality yet
+@app.route('stats/weekly/', methods=['GET'])
 def weekly_user_stats():
     username = request.args.get('user')
     start_date_str = request.args.get('start')
