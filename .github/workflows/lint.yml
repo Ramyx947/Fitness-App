@@ -1,0 +1,127 @@
+name: Reusable Linting Workflow
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        description: 'Name of the service to lint'
+        required: true
+        type: string
+      language:
+        description: 'Programming language of the service'
+        required: true
+        type: string
+      working_directory:
+        description: 'Directory of the service'
+        required: true
+        type: string
+
+jobs:
+  lint:
+    name: Lint ${{ inputs.service }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Environment for ${{ inputs.language }}
+        run: |
+          case "${{ inputs.language }}" in
+            python)
+              echo "Setting up Python"
+              sudo apt-get update
+              sudo apt-get install -y python3-pip
+              ;;
+            java)
+              echo "Setting up Java"
+              sudo apt-get update
+              sudo apt-get install -y openjdk-11-jdk
+              ;;
+            node)
+              echo "Node.js setup is handled separately."
+              ;;
+            *)
+              echo "Unsupported language: ${{ inputs.language }}"
+              exit 1
+              ;;
+          esac
+      - name: Set up Node.js
+        if: inputs.language == 'node'
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'  # Updated to Node.js 20
+          cache: 'npm'        # Automatically caches node_modules based on package-lock.json
+
+      - name: Cache Python Dependencies
+        if: inputs.language == 'python'
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('${{ inputs.working_directory }}/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Cache Java Dependencies
+        if: inputs.language == 'java'
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper/
+          key: ${{ runner.os }}-gradle-${{ hashFiles('${{ inputs.working_directory }}/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Install Dependencies
+        run: |
+          case "${{ inputs.language }}" in
+            node)
+              npm ci
+              ;;
+            python)
+              pip3 install -r requirements.txt
+              pip3 install flake8
+              ;;
+            java)
+              ./gradlew checkstyleMain --no-daemon
+              ;;
+          esac
+        working-directory: ${{ inputs.working_directory }}
+
+      - name: Run Linter
+        run: |
+          case "${{ inputs.language }}" in
+            node)
+              npm run lint 2> lint-errors.log || true
+              ;;
+            python)
+              flake8 . 2> flake8-errors.log || true
+              ;;
+            java)
+              ./gradlew checkstyleMain --no-daemon 2> checkstyle-errors.log || true
+              ;;
+          esac
+        working-directory: ${{ inputs.working_directory }}
+
+      # Separate Upload Steps for Each Language
+      - name: Upload Node Lint Errors
+        if: inputs.language == 'node'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.service }}-lint-errors
+          path: ${{ inputs.working_directory }}/lint-errors.log
+
+      - name: Upload Python Lint Errors
+        if: inputs.language == 'python'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.service }}-lint-errors
+          path: ${{ inputs.working_directory }}/flake8-errors.log
+
+      - name: Upload Java Lint Errors
+        if: inputs.language == 'java'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.service }}-lint-errors
+          path: ${{ inputs.working_directory }}/checkstyle-errors.log
