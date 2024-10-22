@@ -6,9 +6,8 @@ require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 5300;
-const baseUri = process.env.MONGO_URI || config.mongoUri;
-const database = process.env.MONGO_DB || config.mongoDb;
-const mongoUri = `${baseUri}/${database}`;
+const mongoUri = process.env.MONGO_URI || config.mongoUri;
+const mongoDb = process.env.MONGO_DB || config.mongoDb;
 
 // Middleware setup
 app.use(cors());
@@ -16,7 +15,7 @@ app.use(express.json());
 
 // MongoDB connection
 mongoose
-  .connect(mongoUri, { useNewUrlParser: true })
+  .connect(mongoUri, { useNewUrlParser: true , dbName: mongoDb})
   .then(() => console.log("MongoDB database connection established successfully"))
   .catch((error) => console.error("MongoDB connection error:", error));
 
