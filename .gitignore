@@ -1,0 +1,16 @@
+# Ignore node_modules
+node_modules/
+
+# Ignore .env
+.env
+
+# Ignore Docker artifacts
+docker-compose.override.yml
+*.log
+.DS_Store
+
+# Ignore system files
+*.swp
+.vscode/
+.idea/
+.ven

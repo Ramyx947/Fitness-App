@@ -1,0 +1,12 @@
+# Ignore node_modules and any files you don't want to include in the Docker build
+node_modules
+npm-debug.log
+Dockerfile*
+docker-compose*
+
+# Ignore local environment files
+.env
+
+# Ignore Git-related files
+.git
+.gitignore
