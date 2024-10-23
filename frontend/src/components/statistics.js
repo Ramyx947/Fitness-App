@@ -49,7 +49,7 @@ const Statistics = ({ currentUser }) => {
           setErrors(["No data found for the current user."]);
         }
       } catch (error) {
-        console.error("There was an error fetching the data!", error);
+        console.error("There was an error fetching the data.", error);
         setErrors([error.message || "An unknown error occurred."]);
       }
     };

@@ -105,7 +105,7 @@ const Journal = ({ currentUser }) => {
             </li>
           ))
         ) : (
-          <li>No exercises found for this user.</li>
+          <li>No exercises found for this period.</li>
         )}
       </ul>
     </div>
