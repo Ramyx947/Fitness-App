@@ -1,14 +1,15 @@
+
+
 schema {
     query: Query
 }
-
-type Stats {
+type Stats{
     username: String!
     exercises: [Exercise]
 }
 
 type Exercise {
-    exerciseType: String!
+    exerciseType: String
     totalDuration: Int
 }
 
@@ -21,5 +22,5 @@ type StatsResult {
 type Query {
     stats: StatsResult
     filteredStats(name: String): StatsResult
-    weekly: StatsResult
+    weekly(user: String!, start: String!, end: String!): StatsResult
 }
