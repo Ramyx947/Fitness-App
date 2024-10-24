@@ -15,7 +15,6 @@ describe('Exercise API', () => {
     }).then((response) => {
       expect(response.status).to.eq(200);
       expect(response.body.message).to.eq('Exercise added!');
-      id = response.body._id; 
     });
   });
 
@@ -23,6 +22,47 @@ describe('Exercise API', () => {
     cy.request('http://localhost:5300/exercises').then((response) => {
       expect(response.status).to.eq(200);
       expect(response.body).to.have.length.greaterThan(0);
+
+      id = response.body[0]._id;
+    });
+  });
+
+  it('Retrieve an exercise by ID', () => {
+    cy.request({
+      method: 'GET',
+      url:`http://localhost:5300/exercises/` + id,
+    }
+    ).then((response) => {
+      expect(response.status).to.eq(200);
+    });
+  });
+
+  it('Update an exercise by ID', () => {
+    cy.request({
+      method: 'PUT',
+      url: 'http://localhost:5300/exercises/update/' + id,
+      body: {
+        username: 'testuser',
+        exerciseType: 'Running',
+        description: 'Running 10km',
+        duration: 60,
+        date: new Date()
+      }
+    }).then((response) => {
+      expect(response.status).to.eq(200);
+      expect(response.body.message).to.eq('Exercise updated!')
+    });
+  });
+
+  it('Delete an exercise by ID', () => {
+    let url = 'http://localhost:5300/exercises/' + id;
+
+    cy.request({
+      method: 'DELETE',
+      url: url
+    }).then((response) => {
+      expect(response.status).to.eq(200);
+      expect(response.body.message).to.eq('Exercise deleted.')
     });
   });
 });

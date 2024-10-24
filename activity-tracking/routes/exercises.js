@@ -65,9 +65,9 @@ router.delete('/:id', async (req, res) => {
 // PUT: Update an exercise by ID
 router.put('/update/:id', async (req, res) => {
     try {
-      const { username, description, duration, date } = req.body;
+      const { username, exerciseType, description, duration, date } = req.body;
   
-      if (!username || !description || !duration || !date) {
+      if (!username || !exerciseType || !description || !duration || !date) {
         res.status(400).json({ error: 'All fields are required' });
         return;
       }
