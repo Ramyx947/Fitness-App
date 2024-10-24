@@ -1,7 +1,7 @@
-import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { Button, Form, Alert } from "react-bootstrap";
 import axios from "axios";
+import PropTypes from "prop-types";
+import { Button, Form, Alert } from "react-bootstrap";
 import { Link } from "react-router-dom";
 
 const Login = ({ onLogin }) => {
@@ -13,21 +13,33 @@ const Login = ({ onLogin }) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/auth/login",
-        {
-          username,
-          password,
-        }
-      );
+    // Remove hardcoded URL, use environment variable instead
+    const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
-      if (response.status === 200) {
-        onLogin(username);
-      } else {
-        setError("Invalid credentials");
-      }
+    // Make the API call without assigning to response (we don't need it anywhere)
+    await axios.post(`${baseUrl}/api/auth/login`, {
+      username,
+      password,
+    });
+
+      // on successful login
+      onLogin(username);
     } catch (err) {
-      setError("Failed to login");
+      // Differentiate between different error types
+      if (err.response) {
+        // Server responded with a status other than 2xx
+        if (err.response.status === 401) {
+          setError("Invalid credentials");
+        } else {
+          setError(`Error: ${err.response.status} - ${err.response.data.message || 'Unexpected error'}`);
+        }
+      } else if (err.request) {
+        // Request was made but no response was received
+        setError("Network error, please try again later.");
+      } else {
+        // Something else caused the error
+        setError("Failed to login due to an unexpected error.");
+      }
     }
   };
 
