@@ -2,10 +2,7 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const Exercise = require('../../models/exercise.model');
 const app = require('../../server');
-const {
-  validateExerciseStructure,
-  validateExerciseInDatabase,
-} = require('../helpers/exerciseHelpers');
+const { validateExercise } = require('../helpers/exerciseHelpers');
 
 let exerciseId;
 
@@ -32,7 +29,7 @@ beforeEach(async () => {
     exerciseType: 'Swimming',
     description: 'Morning swim',
     duration: 30,
-    date: new Date(),
+    date: new Date('2024-01-01T09:00:00Z'),
   });
 
   // Save exercise and store its ID
@@ -46,7 +43,9 @@ afterEach(async () => {
 });
 
 describe('Exercise API Tests', () => {
-  // POST new exercise
+  /**
+   * Test Case 1: POST - Create a new exercise
+   */
   it('should create a new exercise with correct data types', async () => {
     const fixedDate = new Date('2024-01-01T10:00:00Z');
     const newExercise = {
@@ -61,66 +60,66 @@ describe('Exercise API Tests', () => {
       .post('/exercises/add')
       .send(newExercise);
 
-      expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(200);
     expect(response.body.message).toBe('Exercise added!');
+    expect(response.body.exercise).toBeDefined();
 
     // Validate the structure and data types of the returned exercise
-    validateExerciseStructure(response.body.exercise, {
-      username: 'UserTwo',
-      exerciseType: 'Running',
-      description: 'Easy run',
-      duration: 15,
-      date: fixedDate,
-    });
+    validateExercise(response.body.exercise, newExercise, false); // isDatabase flag = false
 
     // Verify that the exercise exists in the database with correct data types
-    const exerciseInDb = await Exercise.findOne({ username: 'UserTwo' });
-    validateExerciseInDatabase(exerciseInDb, {
-      username: 'UserTwo',
-      exerciseType: 'Running',
-      description: 'Easy run',
-      duration: 15,
-      date: fixedDate,
-    });
+    const exerciseInDb = await Exercise.findOne({ username: 'UserTwo' }).lean();
+    validateExercise(exerciseInDb, newExercise, true); // isDatabase = true
+
   });
 
-  // GET /exercises/
+  /**
+   * Test Case 2: GET - Retrieve all exercises
+   */
   it('should retrieve all exercises with correct data types', async () => {
     const response = await request(app).get('/exercises');
     expect(response.statusCode).toBe(200);
     expect(Array.isArray(response.body)).toBe(true);
     expect(response.body.length).toBe(1); // Only the exercise from beforeEach
+
     // Validate each exercise in the array
     response.body.forEach((exercise) => {
-      validateExerciseStructure(exercise, {
+      validateExercise(exercise, {
         username: 'UserOne',
         exerciseType: 'Swimming',
         description: 'Morning swim',
         duration: 30,
-      });
+        date: new Date('2024-01-01T09:00:00Z'),
+      }, false); // isDatabase = false
     });
   });
 
-  // GET /exercises/:id
+  /**
+   * Test Case 3: GET - Retrieve an exercise by ID
+   */
   it('should retrieve an exercise by id with correct data types', async () => {
     const response = await request(app).get(`/exercises/${exerciseId}`);
     expect(response.statusCode).toBe(200);
-    validateExerciseStructure(response.body, {
+
+    validateExercise(response.body, {
       username: 'UserOne',
       exerciseType: 'Swimming',
       description: 'Morning swim',
       duration: 30,
-    });
+      date: new Date('2024-01-01T09:00:00Z'),
+    }, false); // isDatabase = false
   });
 
-  // PUT /exercises/update/:id
+  /**
+   * Test Case 4: PUT - Update an existing exercise
+   */
   it('should update an existing exercise with correct data types', async () => {
     const updatedExercise = {
       username: 'UserTwo',
       exerciseType: 'Running',
       description: 'Easy run',
       duration: 45,
-      date: new Date(),
+      date: new Date('2024-01-01T11:00:00Z'),
     };
 
     const response = await request(app)
@@ -131,24 +130,28 @@ describe('Exercise API Tests', () => {
     expect(response.body.message).toBe('Exercise updated!');
 
     // Validate the structure and data types of the updated exercise in the response
-    validateExerciseStructure(response.body.exercise, {
+    validateExercise(response.body.exercise, {
       username: 'UserTwo',
       exerciseType: 'Running',
       description: 'Easy run',
       duration: 45,
-    });
+      date: new Date('2024-01-01T11:00:00Z'),
+    }, false); // isDatabase = false
 
     // Verify that the exercise has been updated in the database with correct data types
     const exerciseInDb = await Exercise.findById(exerciseId);
-    validateExerciseInDatabase(exerciseInDb, {
+    validateExercise(exerciseInDb, {
       username: 'UserTwo',
       exerciseType: 'Running',
       description: 'Easy run',
       duration: 45,
-    });
+      date: new Date('2024-01-01T11:00:00Z'),
+    }, true); // isDatabase = true
   });
 
-  // DELETE /exercises/:id
+  /**
+   * Test Case 5: DELETE - Delete an exercise by ID
+   */
   it('should delete an exercise by id with correct data types', async () => {
     const response = await request(app).delete(`/exercises/${exerciseId}`);
     expect(response.statusCode).toBe(200);
