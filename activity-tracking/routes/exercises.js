@@ -24,11 +24,14 @@ router.post('/add', async (req, res) => {
       exerciseType,
       description,
       duration: Number(duration),
-      date: Date.parse(date),
+      date: new Date(date),
     });
 
-    await newExercise.save();
-    res.json({ message: 'Exercise added!' });
+    const savedExercise = await newExercise.save();
+    res.json({
+      message: 'Exercise added!',
+      exercise: savedExercise, // Include the saved exercise in the response
+    });
   } catch (error) {
     res.status(400).json({ error: 'Error: ' + error.message });
   }
