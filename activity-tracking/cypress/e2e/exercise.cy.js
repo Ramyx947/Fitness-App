@@ -1,5 +1,4 @@
 describe('Exercise API', () => {
-  let id;
 
   it('Add a new exercise', () => {
     cy.request({
