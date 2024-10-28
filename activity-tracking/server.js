@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-require('dotenv').config();
+require('dotenv').config() // loads environment variables from the .env file into process.env
 
 const app = express();
 const port = process.env.PORT || 5300;
@@ -30,7 +30,8 @@ const exercisesRouter = require('./routes/exercises');
 app.use('/exercises', exercisesRouter);
 
 // Error handling middleware
-app.use((err, req, res) => {
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Something went wrong!');
 });
@@ -41,5 +42,9 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`Server is running on port: ${port}`);
   });
 }
+
+app.listen(port, () => {
+  console.log(`Server is running on port: ${port}`);
+});
 
 module.exports = app;

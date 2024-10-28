@@ -1,0 +1,138 @@
+# --------------------------------------
+# Docker Compose configuration for the develop branch.
+# Used for development builds and testing, with real-time code updates.
+# Overrides default configuration settings to suit the development environment.
+# --------------------------------------
+
+version: '3.8'
+services:
+  frontend:
+    environment:
+      - NODE_ENV=${NODE_ENV_DEV}
+      - REACT_APP_API_URL=${REACT_APP_API_URL}
+    ports:
+      - "3000:80"
+    volumes:  # Mounts local directortories into the container for real-time code updates (no need to refresh to see changes)
+      - ./frontend:/app
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - app-network
+    healthcheck: # Ensures that the frontend service is fully up and running before Cypress starts executing tests
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  activity-tracking:
+    build:
+      context: ./activity-tracking
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=${NODE_ENV_DEV}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB=${MONGO_DB_DEV}
+    ports:
+      - "5300:5300"
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+    volumes:
+      - ./activity-tracking:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5300/healthcheck"]
+      interval: 10s
+      retries: 5
+
+  analytics:
+    build:
+      context: ./analytics
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=${NODE_ENV_DEV}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB=${MONGO_DB_DEV}
+    ports:
+      - "5050:5050"
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+    volumes:
+      - ./analytics:/app
+  
+  recipes:
+      build:
+        context: ./recipes
+        dockerfile: Dockerfile
+      environment:
+      - NODE_ENV=${NODE_ENV_DEV}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB=${MONGO_DB_DEV}
+      ports:
+        - "5051:5051"
+      depends_on:
+        - mongodb
+      networks:
+        - app-network
+      volumes:
+        - ./recipes:/app
+  
+  authservice:
+    build:
+      context: ./authservice
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_DATA_MONGODB_DATABASE=${MONGO_DB_AUTH_DATABASE}
+      - SPRING_DATA_MONGODB_URI=${MONGO_URI}
+    command: printenv
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+
+  mongodb:
+      image: mongo:latest
+      environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      ports:
+        - "27017:27017"
+      volumes:
+        - mongodbdata:/data/db
+      networks:
+        - app-network
+
+  cypress:
+      build:
+        context: . # Uses the project root (.) to access both Dockerfile.cypress and cypress.config.js
+        dockerfile: Dockerfile.cypress
+      depends_on: # Ensures Cypress waits for the frontend service to be healthy and other services to start
+        # Load only necessary services at runtime
+        - frontend
+        - activity-tracking
+        # - analytics
+        # - recipes
+        - authservice
+        - mongodb
+      environment: # Sets CYPRESS_baseUrl and CYPRESS_apiUrl to internal Docker network URLs
+        - CYPRESS_baseUrl=${CYPRESS_BASE_URL}
+        - CYPRESS_apiUrl=${CYPRESS_API_URL}
+      volumes: # Mounts the Cypress tests (./cypress) and configuration (cypress.config.js) into the container at /e2e
+        - ./cypress:/e2e/cypress
+        - ./cypress/cypress.config.js:/e2e/cypress.config.js
+      working_dir: /e2e
+      command: "npx cypress run --headless" # Executes wait-on and Cypress
+      networks:
+        - app-network
+
+networks:
+  app-network:
+    driver: bridge # all services using app-network communicate over a bridge network
+
+volumes:
+  mongodbdata:

@@ -34,13 +34,10 @@ const Journal = ({ currentUser }) => {
         end: moment(endDate).format("YYYY-MM-DD"),
       };
 
-      const response = await axios.post(
-        'http://localhost:5050/api/graphql',
-        {
-          query,
-          variables,
-        }
-      );
+      const response = await axios.post("http://localhost/api/graphql", {
+        query,
+        variables,
+    });
 
       const weeklyStats = response.data.data.weekly;
 

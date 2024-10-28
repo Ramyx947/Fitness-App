@@ -30,7 +30,7 @@ const Statistics = ({ currentUser }) => {
       };
 
       try {
-        const response = await axios.post("http://localhost:5050/api/graphql", {
+        const response = await axios.post("http://localhost/api/graphql", {
           query,
           variables,
         });

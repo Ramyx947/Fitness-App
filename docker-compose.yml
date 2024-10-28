@@ -1,11 +1,28 @@
-version: '3.8'
 services:
+  nginx: # Nginx acts as the single entry point to your application
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      -  /workspaces/TEAM-3-MLA-app/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - activity-tracking
+      - analytics
+      - authservice
+      - recipes
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    ports:
-      - "80:80"
     networks:
       - app-network
 
@@ -15,8 +32,8 @@ services:
       dockerfile: Dockerfile
     environment:
       - NODE_ENV=development
-    ports:
-      - "5300:5300"
+    env_file:
+      - .env
     depends_on:
       - mongodb
     networks:
@@ -57,8 +74,6 @@ services:
     environment:
       - SPRING_DATA_MONGODB_DATABASE=test
       - SPRING_DATA_MONGODB_URI=mongodb://root:cfgmla23@mongodb:27017
-    ports:
-      - "8080:8080"
     depends_on:
       - mongodb
     networks:
