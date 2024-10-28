@@ -1,11 +1,11 @@
-import PropTypes from 'prop-types'
-import React, { useState, useEffect } from 'react'
-import axios from 'axios'
-import './statistics.css'
+import PropTypes from 'prop-types';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import './statistics.css';
 
 const Statistics = ({ currentUser }) => {
-    const [data, setData] = useState([])
-    const [errors, setErrors] = useState([])
+    const [data, setData] = useState([]);
+    const [errors, setErrors] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -23,41 +23,41 @@ const Statistics = ({ currentUser }) => {
             }
           }
         }
-      `
+      `;
 
             const variables = {
                 name: currentUser,
-            }
+            };
 
             try {
                 const response = await axios.post('http://localhost:5050/api/graphql', {
                     query,
                     variables,
-                })
+                });
 
                 // Ensure response data is defined and has the expected structure
-                const statsResult = response.data?.data?.filteredStats
+                const statsResult = response.data?.data?.filteredStats;
 
                 if (statsResult) {
                     if (statsResult.success) {
-                        setData(statsResult.results)
-                        setErrors([]) // Clear errors if the request is successful
+                        setData(statsResult.results);
+                        setErrors([]); // Clear errors if the request is successful
                     } else {
-                        setErrors(statsResult.errors || ['Unknown error occurred'])
+                        setErrors(statsResult.errors || ['Unknown error occurred']);
                     }
                 } else {
-                    setErrors(['No data found for the current user.'])
+                    setErrors(['No data found for the current user.']);
                 }
             } catch (error) {
-                console.error('There was an error fetching the data.', error)
-                setErrors([error.message || 'An unknown error occurred.'])
+                console.error('There was an error fetching the data.', error);
+                setErrors([error.message || 'An unknown error occurred.']);
             }
-        }
+        };
 
-        fetchData()
-    }, [currentUser])
+        fetchData();
+    }, [currentUser]);
 
-    const currentUserData = data.find((item) => item.username === currentUser)
+    const currentUserData = data.find((item) => item.username === currentUser);
 
     return (
         <div className="stats-container">
@@ -85,11 +85,11 @@ const Statistics = ({ currentUser }) => {
                 </p>
             )}
         </div>
-    )
-}
+    );
+};
 
-export default Statistics
+export default Statistics;
 
 Statistics.propTypes = {
     currentUser: PropTypes.string.isRequired,
-}
+};

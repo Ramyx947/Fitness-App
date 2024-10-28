@@ -1,27 +1,27 @@
-import PropTypes from 'prop-types'
-import React from 'react'
-import { Navbar, Nav } from 'react-bootstrap'
-import { useNavigate } from 'react-router-dom'
+import PropTypes from 'prop-types';
+import React from 'react';
+import { Navbar, Nav } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 
 const NavbarComponent = ({ onLogout }) => {
-    const navigate = useNavigate()
+    const navigate = useNavigate();
 
     const onNavigate = (route) => {
-        console.log('Navigating to:', route)
+        console.log('Navigating to:', route);
         switch (route) {
             case 'TrackExercise':
-                navigate('/trackExercise')
-                break
+                navigate('/trackExercise');
+                break;
             case 'Statistics':
-                navigate('/statistics')
-                break
+                navigate('/statistics');
+                break;
             case 'Journal':
-                navigate('/journal')
-                break
+                navigate('/journal');
+                break;
             default:
-                console.error('Invalid route:', route)
+                console.error('Invalid route:', route);
         }
-    }
+    };
 
     return (
         <Navbar className="nav-back custom-navbar" expand="lg">
@@ -45,11 +45,11 @@ const NavbarComponent = ({ onLogout }) => {
                 </Nav>
             </Navbar.Collapse>
         </Navbar>
-    )
-}
+    );
+};
 
-export default NavbarComponent
+export default NavbarComponent;
 
 NavbarComponent.propTypes = {
     onLogout: PropTypes.func.isRequired,
-}
+};

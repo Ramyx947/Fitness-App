@@ -1,16 +1,16 @@
-import PropTypes from 'prop-types'
-import React, { useState } from 'react'
-import { Button, Form } from 'react-bootstrap'
-import { trackExercise } from '../api'
-import 'bootstrap/dist/css/bootstrap.min.css'
-import IconButton from '@mui/material/IconButton'
-import DirectionsRunIcon from '@mui/icons-material/DirectionsRun'
-import BikeIcon from '@mui/icons-material/DirectionsBike'
-import PoolIcon from '@mui/icons-material/Pool'
-import FitnessCenterIcon from '@mui/icons-material/FitnessCenter'
-import OtherIcon from '@mui/icons-material/HelpOutline'
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
+import PropTypes from 'prop-types';
+import React, { useState } from 'react';
+import { Button, Form } from 'react-bootstrap';
+import { trackExercise } from '../api';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import IconButton from '@mui/material/IconButton';
+import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
+import BikeIcon from '@mui/icons-material/DirectionsBike';
+import PoolIcon from '@mui/icons-material/Pool';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+import OtherIcon from '@mui/icons-material/HelpOutline';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const TrackExercise = ({ currentUser }) => {
     const [state, setState] = useState({
@@ -18,34 +18,34 @@ const TrackExercise = ({ currentUser }) => {
         description: '',
         duration: 0,
         date: new Date(),
-    })
-    const [message, setMessage] = useState('')
+    });
+    const [message, setMessage] = useState('');
 
     const onSubmit = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
 
         const dataToSubmit = {
             username: currentUser,
             ...state,
-        }
+        };
 
         try {
-            const response = await trackExercise(dataToSubmit)
-            console.log(response.data)
+            const response = await trackExercise(dataToSubmit);
+            console.log(response.data);
 
             setState({
                 exerciseType: '',
                 description: '',
                 duration: 0,
                 date: new Date(),
-            })
+            });
 
-            setMessage('Activity logged successfully! Well done!')
-            setTimeout(() => setMessage(''), 2000)
+            setMessage('Activity logged successfully! Well done!');
+            setTimeout(() => setMessage(''), 2000);
         } catch (error) {
-            console.error('There was an error logging your activity!', error)
+            console.error('There was an error logging your activity!', error);
         }
-    }
+    };
 
     return (
         <div>
@@ -112,11 +112,11 @@ const TrackExercise = ({ currentUser }) => {
             </Form>
             {message && <p style={{ color: 'green' }}>{message}</p>}
         </div>
-    )
-}
+    );
+};
 
-export default TrackExercise
+export default TrackExercise;
 
 TrackExercise.propTypes = {
     currentUser: PropTypes.string.isRequired,
-}
+};

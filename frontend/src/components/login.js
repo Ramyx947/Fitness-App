@@ -1,44 +1,44 @@
-import React, { useState } from 'react'
-import axios from 'axios'
-import PropTypes from 'prop-types'
-import { Button, Form, Alert } from 'react-bootstrap'
-import { Link } from 'react-router-dom'
+import React, { useState } from 'react';
+import axios from 'axios';
+import PropTypes from 'prop-types';
+import { Button, Form, Alert } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
 const Login = ({ onLogin }) => {
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
-    const [error, setError] = useState('')
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
 
     const handleLogin = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
 
         try {
             // Remove hardcoded URL, use environment variable instead
-            const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080'
+            const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
             // Make the API call without assigning to response (we don't need it anywhere)
             await axios.post(`${baseUrl}/api/auth/login`, {
                 username,
                 password,
-            })
+            });
 
             // on successful login
-            onLogin(username)
+            onLogin(username);
         } catch (err) {
             // Differentiate between different error types
             if (err.response) {
                 // Server responded with a status other than 2xx
                 if (err.response.status === 401) {
-                    setError('Invalid credentials')
+                    setError('Invalid credentials');
                 } else {
-                    setError(`Error: ${err.response.status} - ${err.response.data.message || 'Unexpected error'}`)
+                    setError(`Error: ${err.response.status} - ${err.response.data.message || 'Unexpected error'}`);
                 }
             } else if (err.request) {
                 // Request was made but no response was received
-                setError('Network error, please try again later.')
+                setError('Network error, please try again later.');
             } else {
                 // Something else caused the error
-                setError('Failed to login due to an unexpected error.')
+                setError('Failed to login due to an unexpected error.');
             }
         }
 
@@ -76,12 +76,12 @@ const Login = ({ onLogin }) => {
                     {"Don't have an account?"} <Link to="/signup">Sign up</Link>
                 </p>
             </div>
-        )
-    }
-}
+        );
+    };
+};
 
-export default Login
+export default Login;
 
 Login.propTypes = {
     onLogin: PropTypes.func.isRequired,
-}
+};

@@ -1,15 +1,15 @@
-import PropTypes from 'prop-types'
-import React, { useState, useEffect } from 'react'
-import axios from 'axios'
-import { Button } from 'react-bootstrap'
-import moment from 'moment'
-import './journal.css'
+import PropTypes from 'prop-types';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Button } from 'react-bootstrap';
+import moment from 'moment';
+import './journal.css';
 
 const Journal = ({ currentUser }) => {
-    const [startDate, setStartDate] = useState(moment().startOf('week').toDate())
-    const [endDate, setEndDate] = useState(moment().endOf('week').toDate())
-    const [exercises, setExercises] = useState([])
-    const [errors, setErrors] = useState([])
+    const [startDate, setStartDate] = useState(moment().startOf('week').toDate());
+    const [endDate, setEndDate] = useState(moment().endOf('week').toDate());
+    const [exercises, setExercises] = useState([]);
+    const [errors, setErrors] = useState([]);
 
     const fetchExercises = async () => {
         try {
@@ -26,46 +26,46 @@ const Journal = ({ currentUser }) => {
             }
           }
         }
-      `
+      `;
 
             const variables = {
                 user: currentUser,
                 start: moment(startDate).format('YYYY-MM-DD'),
                 end: moment(endDate).format('YYYY-MM-DD'),
-            }
+            };
 
             const response = await axios.post('http://localhost:5050/api/graphql', {
                 query,
                 variables,
-            })
+            });
 
-            const weeklyStats = response.data.data.weekly
+            const weeklyStats = response.data.data.weekly;
 
             if (weeklyStats.success) {
                 // Extract exercises from results
-                const allExercises = weeklyStats.results.flatMap((result) => result.exercises)
-                setExercises(allExercises)
+                const allExercises = weeklyStats.results.flatMap((result) => result.exercises);
+                setExercises(allExercises);
             } else {
-                setErrors(weeklyStats.errors.length > 0 ? weeklyStats.errors : ['An unknown error occurred. Please try again later.'])
+                setErrors(weeklyStats.errors.length > 0 ? weeklyStats.errors : ['An unknown error occurred. Please try again later.']);
             }
         } catch (error) {
-            console.error('Failed to fetch exercises', error)
-            setErrors([error.response ? error.response.data.error : 'No data found for the provided date range for the current user.'])
+            console.error('Failed to fetch exercises', error);
+            setErrors([error.response ? error.response.data.error : 'No data found for the provided date range for the current user.']);
         }
 
         useEffect(() => {
-            fetchExercises()
-        }, [currentUser, startDate, endDate])
+            fetchExercises();
+        }, [currentUser, startDate, endDate]);
 
         const goToPreviousWeek = () => {
-            setStartDate(moment(startDate).subtract(1, 'weeks').startOf('week').toDate())
-            setEndDate(moment(endDate).subtract(1, 'weeks').endOf('week').toDate())
-        }
+            setStartDate(moment(startDate).subtract(1, 'weeks').startOf('week').toDate());
+            setEndDate(moment(endDate).subtract(1, 'weeks').endOf('week').toDate());
+        };
 
         const goToNextWeek = () => {
-            setStartDate(moment(startDate).add(1, 'weeks').startOf('week').toDate())
-            setEndDate(moment(endDate).add(1, 'weeks').endOf('week').toDate())
-        }
+            setStartDate(moment(startDate).add(1, 'weeks').startOf('week').toDate());
+            setEndDate(moment(endDate).add(1, 'weeks').endOf('week').toDate());
+        };
 
         return (
             <div className="journal-container">
@@ -102,12 +102,12 @@ const Journal = ({ currentUser }) => {
                     )}
                 </ul>
             </div>
-        )
-    }
-}
+        );
+    };
+};
 
-export default Journal
+export default Journal;
 
 Journal.propTypes = {
     currentUser: PropTypes.string.isRequired,
-}
+};

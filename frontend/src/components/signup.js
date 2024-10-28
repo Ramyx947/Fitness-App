@@ -1,36 +1,36 @@
-import PropTypes from 'prop-types'
-import React, { useState } from 'react'
-import { Button, Form, Alert } from 'react-bootstrap'
-import axios from 'axios'
-import { Link } from 'react-router-dom'
+import PropTypes from 'prop-types';
+import React, { useState } from 'react';
+import { Button, Form, Alert } from 'react-bootstrap';
+import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 const Signup = ({ onSignup }) => {
-    const [formData, setFormData] = useState({ username: '', password: '' })
-    const [error, setError] = useState('')
+    const [formData, setFormData] = useState({ username: '', password: '' });
+    const [error, setError] = useState('');
 
     const handleInputChange = (e) => {
-        const { name, value } = e.target
-        setFormData((prevData) => ({ ...prevData, [name]: value }))
-    }
+        const { name, value } = e.target;
+        setFormData((prevData) => ({ ...prevData, [name]: value }));
+    };
 
     const handleSignup = async (e) => {
-        e.preventDefault()
-        setError('')
+        e.preventDefault();
+        setError('');
 
         try {
-            const response = await axios.post('http://localhost:8080/api/auth/signup', formData)
+            const response = await axios.post('http://localhost:8080/api/auth/signup', formData);
 
             if (response.data === 'User registered successfully!') {
-                console.log('User registered successfully')
-                onSignup(formData.username)
+                console.log('User registered successfully');
+                onSignup(formData.username);
             } else {
-                setError(response.data)
+                setError(response.data);
             }
         } catch (error) {
-            console.error('Error during registration', error)
-            setError(error.response?.data || 'An error occurred during registration. Please try again.')
+            console.error('Error during registration', error);
+            setError(error.response?.data || 'An error occurred during registration. Please try again.');
         }
-    }
+    };
 
     return (
         <div>
@@ -69,11 +69,11 @@ const Signup = ({ onSignup }) => {
                 Already have an account? <Link to="/login">Login</Link>
             </p>
         </div>
-    )
-}
+    );
+};
 
-export default Signup
+export default Signup;
 
 Signup.propTypes = {
     onSignup: PropTypes.func.isRequired,
-}
+};
