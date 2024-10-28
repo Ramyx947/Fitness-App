@@ -15,7 +15,6 @@ router.get('/', async (req, res) => {
   
 // POST: Add a new exercise
 router.post('/add', async (req, res) => {
-  console.log(req.body)
   try {
     const { username, exerciseType, description, duration, date } = req.body;
 
@@ -24,11 +23,14 @@ router.post('/add', async (req, res) => {
       exerciseType,
       description,
       duration: Number(duration),
-      date: Date.parse(date),
+      date: new Date(date),
     });
 
-    await newExercise.save();
-    res.json({ message: 'Exercise added!' });
+    const savedExercise = await newExercise.save();
+    res.json({
+      message: 'Exercise added!',
+      exercise: savedExercise, // Include the saved exercise in the response
+    });
   } catch (error) {
     res.status(400).json({ error: 'Error: ' + error.message });
   }
@@ -64,32 +66,30 @@ router.delete('/:id', async (req, res) => {
 
 // PUT: Update an exercise by ID
 router.put('/update/:id', async (req, res) => {
-    try {
-      const { username, description, duration, date } = req.body;
-  
-      if (!username || !description || !duration || !date) {
-        res.status(400).json({ error: 'All fields are required' });
-        return;
+  try {
+      const { username, exerciseType, description, duration, date } = req.body;
+
+      if (!username || !exerciseType || !description || !duration || !date) {
+          return res.status(400).json({ error: 'All fields are required' });
       }
-  
+
       const exercise = await Exercise.findById(req.params.id);
       if (!exercise) {
-        res.status(404).json({ error: 'Exercise not found' });
-        return;
+          return res.status(404).json({ error: 'Exercise not found' });
       }
-  
+
       exercise.username = username;
       exercise.exerciseType = exerciseType;
       exercise.description = description;
       exercise.duration = Number(duration);
       exercise.date = new Date(date);
-  
+
       await exercise.save();
       res.json({ message: 'Exercise updated!', exercise });
-    } catch (error) {
+  } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'An error occurred while updating the exercise' });
-    }
-  });
-  
-  module.exports = router;
+  }
+});
+
+module.exports = router;
