@@ -6,8 +6,22 @@ import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 
 export default [
     { files: ['**/*.{js,mjs,cjs,jsx}'] },
-    { languageOptions: { globals: { ...globals.browser, ...globals.jest, ...globals.node } } },
+    {
+        languageOptions: {
+            globals: {
+                ...globals.browser,
+                ...globals.jest,
+                ...globals.node,
+            },
+        },
+    },
     pluginJs.configs.recommended,
-    pluginReact.configs.flat.recommended,
-    eslintPluginPrettierRecommended,
+    {
+        ...pluginReact.configs.flat.recommended,
+        settings: {
+            react: {
+                version: 'detect', // Automatically detect React version
+            },
+        },
+    },
 ]
