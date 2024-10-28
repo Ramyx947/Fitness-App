@@ -1,8 +1,13 @@
-import globals from "globals";
+import globals from "globals"; 
 import pluginJs from "@eslint/js";
 import pluginReact from "eslint-plugin-react";
 
 export default [
+  {
+    ignores: [
+      "coverage/**"
+    ],
+  },
   {
     files: ["**/*.{js,mjs,cjs,jsx}"],
     languageOptions: { globals: globals.browser },

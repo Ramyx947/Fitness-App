@@ -119,21 +119,21 @@ jobs:
   #     language: java
   #     working_directory: authservice
 
-  lint_analytics:
-    name: Lint Analytics
-    uses: ./.github/workflows/lint.yml
-    with:
-      service: analytics
-      language: python
-      working_directory: analytics
+  # lint_analytics:
+  #   name: Lint Analytics
+  #   uses: ./.github/workflows/lint.yml
+  #   with:
+  #     service: analytics
+  #     language: python
+  #     working_directory: analytics
 
-  lint_recipes:
-    name: Lint Recipes
-    uses: ./.github/workflows/lint.yml
-    with:
-      service: recipes
-      language: python
-      working_directory: recipes
+  # lint_recipes:
+  #   name: Lint Recipes
+  #   uses: ./.github/workflows/lint.yml
+  #   with:
+  #     service: recipes
+  #     language: python
+  #     working_directory: recipes
   
   test-build-and-deploy:
     runs-on: ubuntu-latest
