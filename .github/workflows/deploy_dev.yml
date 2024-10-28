@@ -138,14 +138,16 @@ jobs:
   test-build-and-deploy:
     runs-on: ubuntu-latest
     env:
-      NODE_ENV_DEV: ${{ secrets.NODE_ENV_DEV }}
-      MONGO_DB_DEV: ${{ secrets.MONGO_DB_DEV }}
-      MONGO_URI_DEV: ${{ secrets.MONGO_URI_DEV }}
-      SPRING_DATA_MONGODB_DATABASE_DEV: ${{ secrets.SPRING_DATA_MONGODB_DATABASE_DEV }}
+      NODE_ENV: ${{ secrets.NODE_ENV_DEV }}
+      MONGO_DB: ${{ secrets.MONGO_DB_DEV }}
+      MONGO_URI: ${{ secrets.MONGO_URI }}
+      SPRING_DATA_MONGODB_DATABASE: ${{ secrets.SPRING_DATA_MONGODB_DATABASE_DEV }}
       MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
       MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      REACT_APP_API_URL: http://localhost:8080
+      MONGO_DB_AUTH_DATABASE: authservice-dev
 
     steps:
       - name: Checkout Code
@@ -160,6 +162,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y docker-compose
+
       - name: Cache Docker layers
         uses: actions/cache@v3
         with:
@@ -177,6 +180,7 @@ jobs:
       - name: Build Docker images
         run: |
           docker-compose -f docker-compose.yml -f docker-compose.develop.yml build
+
       - name: Push Docker images
         run: |
           docker-compose -f docker-compose.yml -f docker-compose.develop.yml push
