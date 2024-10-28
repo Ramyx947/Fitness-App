@@ -1,30 +1,30 @@
-import React from 'react'
-import { useState } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import './App.css'
-import 'bootstrap/dist/css/bootstrap.min.css'
-import NavbarComponent from './components/navbar'
-import TrackExercise from './components/trackExercise'
-import Statistics from './components/statistics'
-import Footer from './components/footer'
-import Login from './components/login'
-import Signup from './components/signup'
-import Journal from './components/journal'
-import logo from './img/CFG_logo.png' // Update the path to your logo file
+import React from 'react';
+import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import './App.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import NavbarComponent from './components/navbar';
+import TrackExercise from './components/trackExercise';
+import Statistics from './components/statistics';
+import Footer from './components/footer';
+import Login from './components/login';
+import Signup from './components/signup';
+import Journal from './components/journal';
+import logo from './img/CFG_logo.png'; // Update the path to your logo file
 
 function App() {
-    const [isLoggedIn, setIsLoggedIn] = useState(false)
-    const [currentUser, setCurrentUser] = useState('')
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [currentUser, setCurrentUser] = useState('');
 
     const handleLogout = () => {
-        setIsLoggedIn(false)
-        setCurrentUser('')
-    }
+        setIsLoggedIn(false);
+        setCurrentUser('');
+    };
 
     const handleLogin = (username) => {
-        setIsLoggedIn(true)
-        setCurrentUser(username)
-    }
+        setIsLoggedIn(true);
+        setCurrentUser(username);
+    };
 
     return (
         <div className="App">
@@ -47,8 +47,8 @@ function App() {
                                 ) : (
                                     <Signup
                                         onSignup={(username) => {
-                                            setIsLoggedIn(true)
-                                            setCurrentUser(username)
+                                            setIsLoggedIn(true);
+                                            setCurrentUser(username);
                                         }}
                                     />
                                 )
@@ -69,7 +69,7 @@ function App() {
                 <Footer />
             </Router>
         </div>
-    )
+    );
 }
 
-export default App
+export default App;
