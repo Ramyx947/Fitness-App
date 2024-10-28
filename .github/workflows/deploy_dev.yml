@@ -67,7 +67,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '14'
+          node-version: '18.18.0' ## update node version to work with ESLint syntax
 
       - name: Install Dependencies
         run: |
@@ -95,7 +95,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '14'
+          node-version: '18.18.0'
 
       - name: Install Dependencies
         run: |
