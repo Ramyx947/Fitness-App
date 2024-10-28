@@ -23,49 +23,94 @@ on:
         default: 'develop'
 
 jobs:
-  determine_changes:
-    name: Determine Changed Services
+  # determine_changes:
+  #   name: Determine Changed Services
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     services: ${{ steps.set_services.outputs.services }}
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+
+  #     - name: Determine Changed Services
+  #       id: filter
+  #       uses: dorny/paths-filter@v2
+  #       with:
+  #         filters: |
+  #           frontend:
+  #             - 'frontend/**'
+  #           authservice:
+  #             - 'authservice/**'
+  #           activity-tracking:
+  #             - 'activity-tracking/**'
+  #           analytics:
+  #             - 'analytics/**'
+  #     - name: Set Services Output
+  #       run: |
+  #        SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r 'keys[] | select(. != "default")' | paste -sd "," -)
+  #        echo "services=${SERVICES}" >> $GITHUB_OUTPUT
+  #     - name: Debug Services Output
+  #       run: |
+  #         echo "Changed services: ${{ steps.set_services.outputs.services }}"
+ 
+
+  lint_and_test_frontend:
+    name: Lint and Test Frontend
     runs-on: ubuntu-latest
-    outputs:
-      services: ${{ steps.set_services.outputs.services }}
+    # if: contains(needs.determine_changes.outputs.services, 'frontend')
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          fetch-depth: 0
+          node-version: '14'
 
-      - name: Determine Changed Services
-        id: filter
-        uses: dorny/paths-filter@v2
+      - name: Install Dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Run Lint
+        run: |
+          cd frontend
+          npm run lint
+
+      - name: Run Unit Tests
+        run: |
+          cd frontend
+          npm test
+
+  lint_and_test_activity_tracking:
+    name: Lint and Test Activity Tracking
+    runs-on: ubuntu-latest
+    # if: contains(needs.determine_changes.outputs.services, 'activity-tracking')
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          filters: |
-            frontend:
-              - 'frontend/**'
-            authservice:
-              - 'authservice/**'
-            activity-tracking:
-              - 'activity-tracking/**'
-            analytics:
-              - 'analytics/**'
-      - name: Set Services Output
+          node-version: '14'
+
+      - name: Install Dependencies
         run: |
-         SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r 'keys[] | select(. != "default")' | paste -sd "," -)
-         echo "services=${SERVICES}" >> $GITHUB_OUTPUT
-      - name: Debug Services Output
+          cd activity-tracking
+          npm install
+
+      - name: Run Lint
         run: |
-          echo "Changed services: ${{ steps.set_services.outputs.services }}"
- 
+          cd activity-tracking
+          npm run lint
 
-  # Separate Lint Jobs for Each Service
-
-  # lint_frontend:
-  #   name: Lint Frontend
-  #   uses: ./.github/workflows/lint.yml
-  #   with:
-  #     service: frontend
-  #     language: node
-  #     working_directory: frontend
-
+      - name: Run Unit Tests
+        run: |
+          cd activity-tracking
+          npm test
   # lint_authservice:
   #   name: Lint AuthService
   #   uses: ./.github/workflows/lint.yml
@@ -73,14 +118,6 @@ jobs:
   #     service: authservice
   #     language: java
   #     working_directory: authservice
-
-  lint_activity_tracking:
-    name: Lint Activity Tracking
-    uses: ./.github/workflows/lint.yml
-    with:
-      service: activity-tracking
-      language: node
-      working_directory: activity-tracking
 
   lint_analytics:
     name: Lint Analytics
@@ -90,6 +127,14 @@ jobs:
       language: python
       working_directory: analytics
 
+  lint_recipes:
+    name: Lint Recipes
+    uses: ./.github/workflows/lint.yml
+    with:
+      service: recipes
+      language: python
+      working_directory: recipes
+  
   test-build-and-deploy:
     runs-on: ubuntu-latest
     env:
