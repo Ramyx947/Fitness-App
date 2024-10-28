@@ -24,12 +24,13 @@ afterAll(async () => {
 // Set up test data before each test
 beforeEach(async () => {
   // Create a new exercise for testing
+  const fixedDate = new Date(Date.UTC(2024, 0, 1, 10, 0, 0));
   const exercise = new Exercise({
     username: 'UserOne',
     exerciseType: 'Swimming',
     description: 'Morning swim',
     duration: 30,
-    date: new Date('2024-01-01T09:00:00Z'),
+    date: fixedDate,
   });
 
   // Save exercise and store its ID
@@ -47,7 +48,8 @@ describe('Exercise API Tests', () => {
    * Test Case 1: POST - Create a new exercise
    */
   it('should create a new exercise with correct data types', async () => {
-    const fixedDate = new Date('2024-01-01T10:00:00Z');
+    const fixedDate = new Date(Date.UTC(2024, 0, 1, 10, 0, 0));
+
     const newExercise = {
       username: 'UserTwo',
       exerciseType: 'Running',
@@ -119,7 +121,7 @@ describe('Exercise API Tests', () => {
       exerciseType: 'Running',
       description: 'Easy run',
       duration: 45,
-      date: new Date('2024-01-01T11:00:00Z'),
+      date: new Date(Date.UTC(2024, 0, 1, 11, 0, 0)),
     };
 
     const response = await request(app)
@@ -135,7 +137,7 @@ describe('Exercise API Tests', () => {
       exerciseType: 'Running',
       description: 'Easy run',
       duration: 45,
-      date: new Date('2024-01-01T11:00:00Z'),
+      date: new Date(Date.UTC(2024, 0, 1, 11, 0, 0)),
     }, false); // isDatabase = false
 
     // Verify that the exercise has been updated in the database with correct data types
@@ -145,7 +147,7 @@ describe('Exercise API Tests', () => {
       exerciseType: 'Running',
       description: 'Easy run',
       duration: 45,
-      date: new Date('2024-01-01T11:00:00Z'),
+      date: new Date(Date.UTC(2024, 0, 1, 11, 0, 0)),
     }, true); // isDatabase = true
   });
 
