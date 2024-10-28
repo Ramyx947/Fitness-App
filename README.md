@@ -1,4 +1,4 @@
-# MLA Fitness App
+# Team 3 Fitness App
 
 A simple and interactive fitness tracking application built with multiple microservices and programming languages. This application allows users to track their exercises and monitor their progress over time.
 
@@ -19,8 +19,9 @@ The Activity Tracking functionality uses the MERN stack (MongoDB, Express.js, Re
 - Node.js
 - MongoDB
 - npm or yarn
-- Python Flask
-- Java 8
+- Python & Flask
+- Java 8 & Spring Boot
+- Docker & Docker Compose
 (all already installed in the devcontainer)
 
 
@@ -137,14 +138,40 @@ mongosh -u root -p cfgmla23 --authenticationDatabase admin --host localhost --po
 
 show registered activities:
 ```
-db.exercises.find()
+db.exercises.find().pretty()
 ```
 
 show registered users:
 ```
-db.users.find()
+db.users.find().pretty()
 ```
 
 
 ## Deployment
 The application is containerized using Docker and can be deployed on any platform that supports Docker containers. For AWS deployment, a GitHub Actions pipeline is configured for CI/CD.
+
+### Any changes to Docker-compose, config, nginx files need to be followed by these steps:
+```sh
+docker-compose down
+docker-compose up -d --build
+```
+OR
+```sh
+docker-compose -f docker-compose.develop.yml down
+docker-compose -f docker-compose.develop.yml up -d --build
+```
+
+### To test each endpoint within nginx container shell, use curl:
+```sh
+docker-compose exec nginx sh
+
+curl http://localhost/auth/
+curl -X POST http://localhost/auth/signup -H "Content-Type: application/json" -d '{"username":"testuser","password":"testpassword"}'
+curl -X POST http://localhost/auth/login -H "Content-Type: application/json" -d '{"username":"testuser","password":"testpassword"}'
+
+curl http://analytics:5050/api/graphql
+
+curl http://localhost/exercises/
+
+curl http://localhost/recipes/
+```
