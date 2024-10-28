@@ -67,7 +67,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18.18.0' ## update node version to work with ESLint syntax
+          node-version: '18.18.0' # Ensure compatibility with ESLint and Jest
 
       - name: Install Dependencies
         run: |
@@ -95,12 +95,12 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18.18.0'
+          node-version: '18.18.0' # Ensure compatibility with ESLint and Jest
 
       - name: Install Dependencies
         run: |
           cd activity-tracking
-          npm install
+          npm install --legacy-peer-deps # Use legacy peer deps to avoid conflicts
 
       - name: Run Lint
         run: |

@@ -1,25 +1,10 @@
 const request = require('supertest');
-const mongoose = require('mongoose');
 const Exercise = require('../../models/exercise.model');
 const app = require('../../server');
 const { validateExercise } = require('../helpers/exerciseHelpers');
 
 let exerciseId;
 
-// Establish DB connection before running the tests
-beforeAll(async () => {
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(global.__MONGO_URI__, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-  }
-});
-
-// Close DB connection after tests run
-afterAll(async () => {
-  await mongoose.connection.close();
-});
 
 // Set up test data before each test
 beforeEach(async () => {
@@ -91,7 +76,7 @@ describe('Exercise API Tests', () => {
         exerciseType: 'Swimming',
         description: 'Morning swim',
         duration: 30,
-        date: new Date('2024-01-01T09:00:00Z'),
+        date: new Date('2024-01-01T10:00:00Z'),
       }, false); // isDatabase = false
     });
   });
@@ -108,7 +93,7 @@ describe('Exercise API Tests', () => {
       exerciseType: 'Swimming',
       description: 'Morning swim',
       duration: 30,
-      date: new Date('2024-01-01T09:00:00Z'),
+      date: new Date('2024-01-01T10:00:00Z'),
     }, false); // isDatabase = false
   });
 

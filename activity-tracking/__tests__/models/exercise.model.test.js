@@ -3,22 +3,14 @@ const Exercise = require('../../models/exercise.model');
 const { validateExercise } = require('../helpers/exerciseHelpers');
 
 describe('Exercise Model Test Suite', () => {
-  // Establish DB connection before running the tests
-  beforeAll(async () => {
-    await mongoose.connect(global.__MONGO_URI__, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-  });
 
   // Clean up the database before each test
   beforeEach(async () => {
     await Exercise.deleteMany({});
   });
-
-  // Close DB connection after tests run
-  afterAll(async () => {
-    await mongoose.connection.close();
+  // Clean up the database after each test
+  afterEach(async () => {
+    await Exercise.deleteMany({});
   });
 
   /**
