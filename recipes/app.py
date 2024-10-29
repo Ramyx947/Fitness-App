@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from pymongo import MongoClient
+from bson import json_util
 
 
 app = Flask(__name__)
@@ -16,6 +17,22 @@ mongo_db = os.getenv('MONGO_DB')
 
 client = MongoClient(mongo_uri)
 db = client[mongo_db]
+# access the collection - will create it, if it does not exist
+collection = db['recipes']
+
+# sample data to insert into collection
+sample_data = [
+    {"recipeName": "Potato Salad", 
+     "ingredients": [
+        {"itemName": "potato", "amount": "3"}, {"itemName": "cucumber", "amount": "1"}],
+     "calories": 200,
+     "nutrients": [{"nutrient": "protein", "amount": "2"}, {"nutrient": "fat", "amount": "8"}]
+    }
+]
+
+# insert data into collection
+result = collection.insert_many(sample_data)
+print("Data inserted with record ids", result.inserted_ids)
 
 # initialise the query type, load the schema and make it executable
 query = QueryType()
@@ -47,21 +64,36 @@ def graphql_playground():
     print("Received a GET request")
     return html_content, 200
 
+# rest endpoint serving as a health check and welcome page
+@app.route('/')
+def index():
+    recipes = db.recipes.find()
+    recipes_list = list(recipes)
+    return json_util.dumps(recipes_list)
+
 # grapqhql resolver field recipes
 @query.field("recipes")
 def recipes(_, info):
      try:
         print("Resolving the recipes info")
+        loadedRecipes = get_recipes()
+        print(loadedRecipes)
         payload = {
             "success": True, 
-            "results": [] # empty until db has been implemented
+            "results": loadedRecipes
         }
      except Exception as error:
         payload = {
             "succes": False, 
-            "results": []
+            "results": [str(error)]
         }
      return payload
+
+def get_recipes():
+    # define an empty pipeline to retrieve all entries
+    pipeline = []
+    all_recipes = list(collection.aggregate(pipeline))
+    return all_recipes
 
 # rest endpoint serving as a health check and welcome page
 @app.route("/")
