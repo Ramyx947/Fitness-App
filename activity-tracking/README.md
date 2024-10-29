@@ -12,7 +12,6 @@ MongoDB
 Express.js
 Node.js
 
-
 ## To run the application
 ```sh
 npm install
