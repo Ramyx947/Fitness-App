@@ -215,7 +215,7 @@ jobs:
       # Build and push Docker images for all services
       - name: Build and Push Docker Images for All Services
         env:
-          SERVICES: "frontend activity-tracking authservice analytics recipes"
+          SERVICES: "frontend activity-tracking"
         run: |
           for service in $SERVICES; do
             echo "Building and pushing Docker image for $service"
@@ -223,6 +223,6 @@ jobs:
             # Build the Docker image
             docker build -t $DOCKER_USERNAME/$service:latest -f ./$service/Dockerfile ./$service
             
-            # Push Docker image to Docker Hub
-            docker push $DOCKER_USERNAME/$service:latest
+            # Build and push the Docker image
+            docker buildx build --push -t $DOCKER_USERNAME/$service:latest -f ./$service/Dockerfile ./$service
           done
