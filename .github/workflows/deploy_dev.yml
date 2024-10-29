@@ -27,60 +27,60 @@ on:
 
 
 jobs:
-  determine_changes:
-    name: Determine Changed Services
-    runs-on: ubuntu-latest
-    outputs:
-      services: ${{ steps.set_services.outputs.services }}
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+  # determine_changes:
+  #   name: Determine Changed Services
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     services: ${{ steps.set_services.outputs.services }}
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
 
-      - name: Determine Changed Services
-        id: filter
-        uses: dorny/paths-filter@v2
-        with:
-          filters: |
-            frontend:
-              - 'frontend/**'
-            activity-tracking:
-              - 'activity-tracking/**'
-            authservice:
-              - 'authservice/**'
-            analytics:
-              - 'analytics/**'
-            recipes:
-              - 'recipes/**'
+  #     - name: Determine Changed Services
+  #       id: filter
+  #       uses: dorny/paths-filter@v2
+  #       with:
+  #         filters: |
+  #           frontend:
+  #             - 'frontend/**'
+  #           activity-tracking:
+  #             - 'activity-tracking/**'
+  #           authservice:
+  #             - 'authservice/**'
+  #           analytics:
+  #             - 'analytics/**'
+  #           recipes:
+  #             - 'recipes/**'
 
-      - name: Set Services Output
-        id: set_services
-        run: |
-          SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r '[keys[] | select(. != "default")] | @json')
-          if [ -z "$SERVICES" ]; then
-            SERVICES='[]'
-          fi
-          echo "services=${SERVICES}" >> $GITHUB_OUTPUT
+  #     - name: Set Services Output
+  #       id: set_services
+  #       run: |
+  #         SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r '[keys[] | select(. != "default")] | @json')
+  #         if [ -z "$SERVICES" ]; then
+  #           SERVICES='[]'
+  #         fi
+  #         echo "services=${SERVICES}" >> $GITHUB_OUTPUT
             
       
-      - name: Debug Services Output
-        run: |
-          echo "Changed services: ${{ steps.set_services.outputs.services }}"
-          echo "Services array:"
-          echo "${{ steps.set_services.outputs.services }}"
+  #     - name: Debug Services Output
+  #       run: |
+  #         echo "Changed services: ${{ steps.set_services.outputs.services }}"
+  #         echo "Services array:"
+  #         echo "${{ steps.set_services.outputs.services }}"
         
-      - name: Validate Services JSON
-        run: |
-          echo "${{ steps.set_services.outputs.services }}" | jq empty
-          echo "Services JSON is valid."
+  #     - name: Validate Services JSON
+  #       run: |
+  #         echo "${{ steps.set_services.outputs.services }}" | jq empty
+  #         echo "Services JSON is valid."
             
             
             
       
-      - name: Debug Services Output
-        run: |
-          echo "Changed services: ${{ steps.set_services.outputs.services }}"
+  #     - name: Debug Services Output
+  #       run: |
+  #         echo "Changed services: ${{ steps.set_services.outputs.services }}"
 
 
   lint_and_test_frontend:
@@ -163,8 +163,6 @@ jobs:
   build_and_deploy:
     name: Build and Deploy to Docker Hub
     runs-on: ubuntu-latest
-    needs: determine_changes
-    # if: needs.determine_changes.outputs.services != '[]'
     env:
       NODE_ENV: ${{ secrets.NODE_ENV_DEV }}
       MONGO_DB: ${{ secrets.MONGO_DB_DEV }}
@@ -194,7 +192,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y docker-compose
       
-      
       - name: Verify Docker Compose Version
         run: |
           docker-compose --version
@@ -215,14 +212,12 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Build the image locally within GitHub Action runner
-      # without pushing it to Docker Hub
-      - name: Build and Push Docker Images for Changed Services
+      # Build and push Docker images for all services
+      - name: Build and Push Docker Images for All Services
         env:
-          CHANGED_SERVICES: ${{ needs.determine_changes.outputs.services }}
+          SERVICES: "frontend activity-tracking authservice analytics recipes"
         run: |
-          echo "Changed services: $CHANGED_SERVICES"
-          for service in $(echo $CHANGED_SERVICES | jq -r '.[]'); do
+          for service in $SERVICES; do
             echo "Building and pushing Docker image for $service"
             
             # Build the Docker image
@@ -231,27 +226,3 @@ jobs:
             # Push Docker image to Docker Hub
             docker push $DOCKER_USERNAME/$service:latest
           done
-
-      # - name: Scan Docker image with Trivy for vulnerabilities
-      #   uses: aquasecurity/trivy-action@0.28.0
-      #   with:
-      #     image-ref: ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:latest
-      #     format: 'table' # output format for the scan results
-      #     exit-code: '1' # the job will faild on high or critical vulnerabilities
-      #     ignore-unfixed: true # Ignore unpatched/unfixed vulnerabilities
-      #     vuln-type: 'os,library'
-      #     severity: 'CRITICAL,HIGH'
-
-      # # TODO: Upload Trivy scan results to GitHub Security tab
-      
-      # # Push Docker Image only if build and scan were successful
-      # - name: Push Docker image
-      #   if: success()
-      #   uses: docker/build-push-action@v4
-      #   with:
-      #     context: ./${{ matrix.service }}
-      #     file: ./${{ matrix.service }}/Dockerfile
-      #     push: true
-      #     tags: ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:latest
-
-      # TODO: add slack notifications for deployment status: success or failure

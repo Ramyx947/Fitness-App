@@ -24,6 +24,7 @@ nodemon server
 docker-compose build activity-tracking
 ```
 
+
 ### Start the service
 ```sh
 docker-compose up activity-tracking
