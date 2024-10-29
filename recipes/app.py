@@ -34,10 +34,9 @@ sample_data = [
 result = collection.insert_many(sample_data)
 print("Data inserted with record ids", result.inserted_ids)
 
-# initialise the query type, load the schema and make it executable
+# initialise the query type, load the schema
 query = QueryType()
 type_defs = load_schema_from_path("schema.graphql")
-schema = make_executable_schema(type_defs, query)
 
 # set up the graphql server
 @app.route('/api/graphql', methods=['POST'])
@@ -64,13 +63,6 @@ def graphql_playground():
     print("Received a GET request")
     return html_content, 200
 
-# rest endpoint serving as a health check and welcome page
-@app.route('/')
-def index():
-    recipes = db.recipes.find()
-    recipes_list = list(recipes)
-    return json_util.dumps(recipes_list)
-
 # grapqhql resolver field recipes
 @query.field("recipes")
 def recipes(_, info):
@@ -95,10 +87,16 @@ def get_recipes():
     all_recipes = list(collection.aggregate(pipeline))
     return all_recipes
 
+# make schema executable
+schema = make_executable_schema(type_defs, query)
+
 # rest endpoint serving as a health check and welcome page
 @app.route("/")
 def index():
     return "<p>Hi and welcome to the recipes page!</p>"
+    # recipes = db.recipes.find()
+    # recipes_list = list(recipes)
+    # return json_util.dumps(recipes_list)
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5051)
