@@ -3,7 +3,6 @@
 ## Overview
 The Activity Tracking Service is an application designed to track user activites, it allows users to log activities and retrieve activity history.
 
-
 ## Features
 - User can log different types of activities with datetimes
 - A list of activities can be retreieved for a given user

@@ -21,6 +21,10 @@ on:
         description: 'Branch to deploy'
         required: false
         default: 'develop'
+      services: # Optional: Allow manual input of services
+        description: 'Comma-separated list of services to build and deploy'
+        required: false
+
 
 jobs:
   determine_changes:
@@ -58,9 +62,25 @@ jobs:
             SERVICES=$(echo "[\"$(echo ${{ github.event.inputs.services }} | tr ',' '","')\"]")
           else
             # Use paths-filter to determine changed services and convert to JSON array
-            SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r 'to_entries | map(select(.value == "true") | .key) | @json')
+            SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r 'to_entries | map(select(.value == "true" and .key != "default") | .key) | @json')
+            # Ensure SERVICES is a valid JSON array
+            if [ -z "$SERVICES" ]; then
+              SERVICES='[]'
+            fi
           fi
           echo "services=${SERVICES}" >> $GITHUB_OUTPUT
+      
+      - name: Debug Services Output
+        run: |
+          echo "Changed services: ${{ steps.set_services.outputs.services }}"
+          echo "Services array:"
+          echo "${{ steps.set_services.outputs.services }}"
+        
+      - name: Validate Services JSON
+        run: |
+          echo "${{ steps.set_services.outputs.services }}" | jq empty
+          echo "Services JSON is valid."
+            
             
             
       
