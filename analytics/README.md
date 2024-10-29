@@ -7,7 +7,7 @@ The analytics service uses poetry for dependency management.
 ### Quickstart: Set up poetry using an existing pyproject.toml
 
 1. When you clone the repo, including all the changes in the `analytics` folder, you should see `analytics/pyproject.toml`. That file effectively replaces `requirements.txt`.
-2. `poetry install` will install all the dependencies from the `pyproject.toml` file in a virtual environment for `analytics` and create a `poetry.lock` file (this should not be committed but simply used locally)
+2. `poetry install` will install all the dependencies from the `pyproject.toml` file in a virtual environment for `analytics` and create a `poetry.lock` file which should be committed to ensure all environments use the exact same dependency version.
 3. run your python script as usual, e.g. `python app.py`, which will now use all the dependencies managed by poetry
 
 ### Useful poetry commands
