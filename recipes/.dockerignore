@@ -1,0 +1,21 @@
+# Python artifacts
+*.pyc
+*.pyo
+__pycache__/
+*.pytest_cache/
+*.coverage
+htmlcov/
+
+# Poetry & Virtualenv Files
+venv/
+.venv/
+poetry.lock
+*.log
+
+# Local environment files
+.env
+.env.local
+
+# Test files and reports
+/tests/
+*.test.py
