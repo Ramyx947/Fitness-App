@@ -57,18 +57,20 @@ jobs:
       - name: Set Services Output
         id: set_services
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.services }}" ]; then
-            # Convert comma-separated services into a JSON array
-            SERVICES=$(echo "[\"$(echo ${{ github.event.inputs.services }} | tr ',' '","')\"]")
-          else
-            # Use paths-filter to determine changed services and convert to JSON array
-            SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r 'to_entries | map(select(.value == "true" and .key != "default") | .key) | @json')
-            # Ensure SERVICES is a valid JSON array
-            if [ -z "$SERVICES" ]; then
-              SERVICES='[]'
-            fi
-          fi
-          echo "services=${SERVICES}" >> $GITHUB_OUTPUT
+          SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r 'keys[] | select(. != "default")' | paste -sd "," -)
+        # run: |
+        #   if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.services }}" ]; then
+        #     # Convert comma-separated services into a JSON array
+        #     SERVICES=$(echo "[\"$(echo ${{ github.event.inputs.services }} | tr ',' '","')\"]")
+        #   else
+        #     # Use paths-filter to determine changed services and convert to JSON array
+        #     SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r 'to_entries | map(select(.value == "true" and .key != "default") | .key) | @json')
+        #     # Ensure SERVICES is a valid JSON array
+        #     if [ -z "$SERVICES" ]; then
+        #       SERVICES='[]'
+        #     fi
+        #   fi
+        #   echo "services=${SERVICES}" >> $GITHUB_OUTPUT
       
       - name: Debug Services Output
         run: |
@@ -88,16 +90,58 @@ jobs:
         run: |
           echo "Changed services: ${{ steps.set_services.outputs.services }}"
  
-  lint_and_test:
-    name: Lint and Test Services
+  # lint_and_test:
+  #   name: Lint and Test Services
+  #   runs-on: ubuntu-latest
+  #   needs: determine_changes
+  #   # Runs only if there are changed services
+  #   # if: needs.determine_changes.outputs.services != '[]' 
+  #   strategy: 
+  #     matrix:
+  #       service: 
+  #         ${{ fromJson(needs.determine_changes.outputs.services) }} ## gets and saves the services that have changes in matrix.strategy
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v3
+
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: '18.18.0'
+      
+  #     - name: Cache Node.js modules
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: |
+  #           **/node_modules
+  #           !**/node_modules/.cache
+  #         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-node-
+
+  #     - name: Install Dependencies
+  #       ## it will only run the step if the service has changes
+  #       if: matrix.service != '' 
+  #       run: |
+  #         cd ${{ matrix.service }}
+  #         npm install --legacy-peer-deps
+
+  #     - name: Run Lint
+  #       if: matrix.service != ''
+  #       run: |
+  #         cd ${{ matrix.service }}
+  #         npm run lint
+
+  #     - name: Run Unit Tests
+  #       if: matrix.service != ''
+  #       run: |
+  #         cd ${{ matrix.service }}
+  #         npm test
+
+  lint_and_test_frontend:
+    name: Lint and Test Frontend
     runs-on: ubuntu-latest
-    needs: determine_changes
-    # Runs only if there are changed services
-    if: needs.determine_changes.outputs.services != '[]' 
-    strategy: 
-      matrix:
-        service: 
-          ${{ fromJson(needs.determine_changes.outputs.services) }} ## gets and saves the services that have changes in matrix.strategy
+    if: contains(needs.determine_changes.outputs.services, 'frontend')
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -105,123 +149,81 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18.18.0'
-      
-      - name: Cache Node.js modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            **/node_modules
-            !**/node_modules/.cache
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          node-version: '18.18.0' # Ensure compatibility with ESLint and Jest
 
       - name: Install Dependencies
-        ## it will only run the step if the service has changes
-        if: matrix.service != '' 
         run: |
-          cd ${{ matrix.service }}
-          npm install --legacy-peer-deps
+          cd frontend
+          npm install
 
       - name: Run Lint
-        if: matrix.service != ''
         run: |
-          cd ${{ matrix.service }}
+          cd frontend
           npm run lint
 
       - name: Run Unit Tests
-        if: matrix.service != ''
         run: |
-          cd ${{ matrix.service }}
+          cd frontend
           npm test
 
-  # lint_and_test_frontend:
-  #   name: Lint and Test Frontend
-  #   runs-on: ubuntu-latest
-  #   if: contains(needs.determine_changes.outputs.services, 'frontend')
-  #   steps:
-  #     - name: Checkout Code
-  #       uses: actions/checkout@v3
+  lint_and_test_activity_tracking:
+    name: Lint and Test Activity Tracking
+    runs-on: ubuntu-latest
+    if: contains(needs.determine_changes.outputs.services, 'activity-tracking')
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-  #     - name: Set up Node.js
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: '18.18.0' # Ensure compatibility with ESLint and Jest
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.18.0' # Ensure compatibility with ESLint and Jest
 
-  #     - name: Install Dependencies
-  #       run: |
-  #         cd frontend
-  #         npm install
+      - name: Install Dependencies
+        run: |
+          cd activity-tracking
+          npm install --legacy-peer-deps # Use legacy peer deps to avoid conflicts
 
-  #     - name: Run Lint
-  #       run: |
-  #         cd frontend
-  #         npm run lint
+      - name: Run Lint
+        run: |
+          cd activity-tracking
+          npm run lint
 
-  #     - name: Run Unit Tests
-  #       run: |
-  #         cd frontend
-  #         npm test
+      - name: Run Unit Tests
+        run: |
+          cd activity-tracking
+          npm test
+  lint_authservice:
+    name: Lint AuthService
+    uses: ./.github/workflows/lint.yml
+    with:
+      service: authservice
+      language: java
+      working_directory: authservice
 
-  # lint_and_test_activity_tracking:
-  #   name: Lint and Test Activity Tracking
-  #   runs-on: ubuntu-latest
-  #   if: contains(needs.determine_changes.outputs.services, 'activity-tracking')
-  #   steps:
-  #     - name: Checkout Code
-  #       uses: actions/checkout@v3
+  lint_analytics:
+    name: Lint Analytics
+    uses: ./.github/workflows/lint.yml
+    with:
+      service: analytics
+      language: python
+      working_directory: analytics
 
-  #     - name: Set up Node.js
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: '18.18.0' # Ensure compatibility with ESLint and Jest
-
-  #     - name: Install Dependencies
-  #       run: |
-  #         cd activity-tracking
-  #         npm install --legacy-peer-deps # Use legacy peer deps to avoid conflicts
-
-  #     - name: Run Lint
-  #       run: |
-  #         cd activity-tracking
-  #         npm run lint
-
-  #     - name: Run Unit Tests
-  #       run: |
-  #         cd activity-tracking
-  #         npm test
-  # lint_authservice:
-  #   name: Lint AuthService
-  #   uses: ./.github/workflows/lint.yml
-  #   with:
-  #     service: authservice
-  #     language: java
-  #     working_directory: authservice
-
-  # lint_analytics:
-  #   name: Lint Analytics
-  #   uses: ./.github/workflows/lint.yml
-  #   with:
-  #     service: analytics
-  #     language: python
-  #     working_directory: analytics
-
-  # lint_recipes:
-  #   name: Lint Recipes
-  #   uses: ./.github/workflows/lint.yml
-  #   with:
-  #     service: recipes
-  #     language: python
-  #     working_directory: recipes
+  lint_recipes:
+    name: Lint Recipes
+    uses: ./.github/workflows/lint.yml
+    with:
+      service: recipes
+      language: python
+      working_directory: recipes
   
   build_and_deploy:
     name: Build and Deploy to Docker Hub
     runs-on: ubuntu-latest
-    needs:
-    - determine_changes
-    - lint_and_test
-    if: needs.determine_changes.outputs.services != '[]'
+    # needs:
+    # - determine_changes
+    # - lint_and_test
+    # if: needs.determine_changes.outputs.services != '[]'
     strategy:
       matrix:
         service: 
