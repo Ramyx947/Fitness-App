@@ -58,9 +58,10 @@ jobs:
             SERVICES=$(echo "[\"$(echo ${{ github.event.inputs.services }} | tr ',' '","')\"]")
           else
             # Use paths-filter to determine changed services and convert to JSON array
-            SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r '[keys[] | select(. != "default")] | @json')
+            SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r 'to_entries | map(select(.value == "true") | .key) | @json')
           fi
           echo "services=${SERVICES}" >> $GITHUB_OUTPUT
+            
             
       
       - name: Debug Services Output
