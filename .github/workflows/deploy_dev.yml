@@ -14,7 +14,7 @@ on:
   pull_request:
     branches:
       - develop
-    types: [opened, synchronize, reopened, closed]
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
       branch:
@@ -41,25 +41,33 @@ jobs:
           filters: |
             frontend:
               - 'frontend/**'
-            authservice:
-              - 'authservice/**'
             activity-tracking:
               - 'activity-tracking/**'
+            authservice:
+              - 'authservice/**'
             analytics:
               - 'analytics/**'
+            recipes:
+              - 'recipes/**'
+
       - name: Set Services Output
+        id: set_services
         run: |
-         SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r 'keys[] | select(. != "default")' | paste -sd "," -)
-         echo "services=${SERVICES}" >> $GITHUB_OUTPUT
+          SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r 'keys[] | select(. != "default")' | paste -sd "," -)
+          echo "services=${SERVICES}" >> $GITHUB_OUTPUT
+      
       - name: Debug Services Output
         run: |
           echo "Changed services: ${{ steps.set_services.outputs.services }}"
  
-
-  lint_and_test_frontend:
-    name: Lint and Test Frontend
+  lint_and_test:
+    name: Lint and Test Services
     runs-on: ubuntu-latest
-    if: contains(needs.determine_changes.outputs.services, 'frontend')
+    needs: determine_changes
+    strategy: 
+      matrix:
+        service: 
+          ${{ fromJson(needs.determine_changes.outputs.services) }} ## gets and saves the services that have changes in matrix.strategy
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -67,50 +75,92 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18.18.0' # Ensure compatibility with ESLint and Jest
-
-      - name: Install Dependencies
-        run: |
-          cd frontend
-          npm install
-
-      - name: Run Lint
-        run: |
-          cd frontend
-          npm run lint
-
-      - name: Run Unit Tests
-        run: |
-          cd frontend
-          npm test
-
-  lint_and_test_activity_tracking:
-    name: Lint and Test Activity Tracking
-    runs-on: ubuntu-latest
-    if: contains(needs.determine_changes.outputs.services, 'activity-tracking')
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+          node-version: '18.18.0'
+      
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
         with:
-          node-version: '18.18.0' # Ensure compatibility with ESLint and Jest
+          path: |
+            **/node_modules
+            !**/node_modules/.cache
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Install Dependencies
+        ## it will only run the step if the service has changes
+        if: matrix.service != '' 
         run: |
-          cd activity-tracking
-          npm install --legacy-peer-deps # Use legacy peer deps to avoid conflicts
+          cd ${{ matrix.service }}
+          npm install --legacy-peer-deps
 
       - name: Run Lint
+        if: matrix.service != ''
         run: |
-          cd activity-tracking
+          cd ${{ matrix.service }}
           npm run lint
 
       - name: Run Unit Tests
+        if: matrix.service != ''
         run: |
-          cd activity-tracking
+          cd ${{ matrix.service }}
           npm test
+
+  # lint_and_test_frontend:
+  #   name: Lint and Test Frontend
+  #   runs-on: ubuntu-latest
+  #   if: contains(needs.determine_changes.outputs.services, 'frontend')
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v3
+
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: '18.18.0' # Ensure compatibility with ESLint and Jest
+
+  #     - name: Install Dependencies
+  #       run: |
+  #         cd frontend
+  #         npm install
+
+  #     - name: Run Lint
+  #       run: |
+  #         cd frontend
+  #         npm run lint
+
+  #     - name: Run Unit Tests
+  #       run: |
+  #         cd frontend
+  #         npm test
+
+  # lint_and_test_activity_tracking:
+  #   name: Lint and Test Activity Tracking
+  #   runs-on: ubuntu-latest
+  #   if: contains(needs.determine_changes.outputs.services, 'activity-tracking')
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v3
+
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: '18.18.0' # Ensure compatibility with ESLint and Jest
+
+  #     - name: Install Dependencies
+  #       run: |
+  #         cd activity-tracking
+  #         npm install --legacy-peer-deps # Use legacy peer deps to avoid conflicts
+
+  #     - name: Run Lint
+  #       run: |
+  #         cd activity-tracking
+  #         npm run lint
+
+  #     - name: Run Unit Tests
+  #       run: |
+  #         cd activity-tracking
+  #         npm test
   # lint_authservice:
   #   name: Lint AuthService
   #   uses: ./.github/workflows/lint.yml
@@ -135,8 +185,14 @@ jobs:
   #     language: python
   #     working_directory: recipes
   
-  test-build-and-deploy:
+  build_and_deploy:
+    name: Build and Deploy to Docker Hub
     runs-on: ubuntu-latest
+    needs: lint_and_test
+    strategy:
+      matrix:
+        service: 
+          ${{ fromJson(needs.determine_changes.outputs.services) }}
     env:
       NODE_ENV: ${{ secrets.NODE_ENV_DEV }}
       MONGO_DB: ${{ secrets.MONGO_DB_DEV }}
@@ -157,11 +213,27 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+        with:
+          install: true
+          version: latest
 
       - name: Install Docker Compose
         run: |
           sudo apt-get update
           sudo apt-get install -y docker-compose
+      
+      
+      - name: Verify Docker Compose Version
+        run: |
+          docker-compose --version
+          # Ensure it's compatible with version '3.8'
+          COMPOSE_VERSION=$(docker-compose version --short)
+          echo "Docker Compose version: $COMPOSE_VERSION"
+          # Optionally, enforce a specific version
+          # if [[ "$COMPOSE_VERSION" != "1.29.2" ]]; then
+          #   echo "Incompatible Docker Compose version."
+          #   exit 1
+          # fi
 
       - name: Cache Docker layers
         uses: actions/cache@v3
@@ -177,10 +249,36 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build Docker images
-        run: |
-          docker-compose -f docker-compose.yml -f docker-compose.develop.yml build
+      # Build the image locally within GitHub Action runner
+      # without pushing it to Docker Hub
+      - name: Build Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./${{ matrix.service }}
+          file: ./${{ matrix.service }}/Dockerfile
+          push: false
+          tags: ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:latest
 
-      - name: Push Docker images
-        run: |
-          docker-compose -f docker-compose.yml -f docker-compose.develop.yml push
+      - name: Scan Docker image with Trivy for vulnerabilities
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:latest
+          format: 'table' # output format for the scan results
+          exit-code: '1' # the job will faild on high or critical vulnerabilities
+          ignore-unfixed: true # Ignore unpatched/unfixed vulnerabilities
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      # TODO: Upload Trivy scan results to GitHub Security tab
+      
+      # Push Docker Image only if build and scan were successful
+      - name: Push Docker image
+        if: success()
+        uses: docker/build-push-action@v4
+        with:
+          context: ./${{ matrix.service }}
+          file: ./${{ matrix.service }}/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:latest
+
+      # TODO: add slack notifications for deployment status: success or failure

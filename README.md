@@ -146,5 +146,11 @@ db.users.find()
 ```
 
 
-## Deployment
-The application is containerized using Docker and can be deployed on any platform that supports Docker containers. For AWS deployment, a GitHub Actions pipeline is configured for CI/CD.
+### Workflow Steps
+
+1. **Determine Changed Services:** Identifies which microservices have been modified.
+2. **Lint and Test Services:** Runs linting and unit tests on the changed services.
+3. **Build and Deploy to Docker Hub:** 
+    # Builds Docker images for the changed services, 
+    # scans them for vulnerabilities using Trivy, and 
+    # pushes the images to Docker Hub if no critical vulnerabilities are found.

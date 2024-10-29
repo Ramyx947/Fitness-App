@@ -3,7 +3,7 @@
 # ----------
     
 # First stage: Install dependencies and build the React app
-FROM node:14 AS build
+FROM node:18.18.0 AS build
 WORKDIR /app
 
 # Copy only the package.json and package-lock.json for dependency caching
