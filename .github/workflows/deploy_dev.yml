@@ -53,8 +53,15 @@ jobs:
       - name: Set Services Output
         id: set_services
         run: |
-          SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r 'keys[] | select(. != "default")' | paste -sd "," -)
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.services }}" ]; then
+            # Convert comma-separated services into a JSON array
+            SERVICES=$(echo "[\"$(echo ${{ github.event.inputs.services }} | tr ',' '","')\"]")
+          else
+            # Use paths-filter to determine changed services and convert to JSON array
+            SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r '[keys[] | select(. != "default")] | @json')
+          fi
           echo "services=${SERVICES}" >> $GITHUB_OUTPUT
+            
       
       - name: Debug Services Output
         run: |
@@ -64,6 +71,8 @@ jobs:
     name: Lint and Test Services
     runs-on: ubuntu-latest
     needs: determine_changes
+    # Runs only if there are changed services
+    if: needs.determine_changes.outputs.services != '[]' 
     strategy: 
       matrix:
         service: 
@@ -188,7 +197,10 @@ jobs:
   build_and_deploy:
     name: Build and Deploy to Docker Hub
     runs-on: ubuntu-latest
-    needs: lint_and_test
+    needs:
+    - determine_changes
+    - lint_and_test
+    if: needs.determine_changes.outputs.services != '[]'
     strategy:
       matrix:
         service: 
