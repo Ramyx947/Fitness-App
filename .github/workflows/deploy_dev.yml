@@ -23,43 +23,43 @@ on:
         default: 'develop'
 
 jobs:
-  # determine_changes:
-  #   name: Determine Changed Services
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     services: ${{ steps.set_services.outputs.services }}
-  #   steps:
-  #     - name: Checkout Code
-  #       uses: actions/checkout@v3
-  #       with:
-  #         fetch-depth: 0
+  determine_changes:
+    name: Determine Changed Services
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.set_services.outputs.services }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-  #     - name: Determine Changed Services
-  #       id: filter
-  #       uses: dorny/paths-filter@v2
-  #       with:
-  #         filters: |
-  #           frontend:
-  #             - 'frontend/**'
-  #           authservice:
-  #             - 'authservice/**'
-  #           activity-tracking:
-  #             - 'activity-tracking/**'
-  #           analytics:
-  #             - 'analytics/**'
-  #     - name: Set Services Output
-  #       run: |
-  #        SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r 'keys[] | select(. != "default")' | paste -sd "," -)
-  #        echo "services=${SERVICES}" >> $GITHUB_OUTPUT
-  #     - name: Debug Services Output
-  #       run: |
-  #         echo "Changed services: ${{ steps.set_services.outputs.services }}"
+      - name: Determine Changed Services
+        id: filter
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+            authservice:
+              - 'authservice/**'
+            activity-tracking:
+              - 'activity-tracking/**'
+            analytics:
+              - 'analytics/**'
+      - name: Set Services Output
+        run: |
+         SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r 'keys[] | select(. != "default")' | paste -sd "," -)
+         echo "services=${SERVICES}" >> $GITHUB_OUTPUT
+      - name: Debug Services Output
+        run: |
+          echo "Changed services: ${{ steps.set_services.outputs.services }}"
  
 
   lint_and_test_frontend:
     name: Lint and Test Frontend
     runs-on: ubuntu-latest
-    # if: contains(needs.determine_changes.outputs.services, 'frontend')
+    if: contains(needs.determine_changes.outputs.services, 'frontend')
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -87,7 +87,7 @@ jobs:
   lint_and_test_activity_tracking:
     name: Lint and Test Activity Tracking
     runs-on: ubuntu-latest
-    # if: contains(needs.determine_changes.outputs.services, 'activity-tracking')
+    if: contains(needs.determine_changes.outputs.services, 'activity-tracking')
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
