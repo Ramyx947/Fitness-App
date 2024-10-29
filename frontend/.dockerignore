@@ -9,9 +9,12 @@ node_modules/
 logs/
 *.log
 
-# Build output
+# Build Artifacts and Cache
 dist/
 build/
+.cache/
+coverage/
+
 
 # Environment variables
 .env
@@ -29,3 +32,8 @@ tests/
 # Ignore logs and temporary files
 *.log
 tmp/
+
+# Tests and Documentation
+/tests/
+*.test.js
+docs/

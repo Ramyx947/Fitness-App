@@ -29,3 +29,5 @@ tests/
 # Ignore logs and temporary files
 *.log
 tmp/
+.venv
+*.cache
