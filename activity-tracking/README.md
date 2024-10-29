@@ -10,6 +10,7 @@ The Activity Tracking Service is an application designed to track user activites
 
 
 ## Technologies used
+
 MongoDB
 Express.js
 Node.js
