@@ -14,7 +14,7 @@ RUN pip install --upgrade pip \
 WORKDIR /app
 
 # Copy the Poetry files to the container
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml ./
 
 # Install project dependencies using Poetry (without dev dependencies)
 # Ensures Poetry installs the dependencies directly into the container's env instead of creating a virtual env 
