@@ -1,0 +1,27 @@
+# Node modules and dependencies
+node_modules/
+*.log
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Git and Version Control
+.git
+.gitignore
+
+# Dependency and Build Artifacts
+*.lock
+coverage/
+.env
+.env.local
+.vscode/
+.DS_Store
+
+# Ignore test files and logs
+**/tests/
+**/*.log
+
+# Ignore Docker and CI config files
+Dockerfile
+docker-compose.yml
+.github/

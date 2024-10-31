@@ -27,13 +27,16 @@ router.post('/add', async (req, res) => {
       exerciseType,
       description,
       duration: Number(duration),
-      date: Date.parse(date),
+      date: new Date(date),
     });
 
     log.debug("[POST] Add a new exercise " + JSON.stringify({ username, exerciseType, description, duration: Number(duration), date: Date.parse(data)} ));
     await newExercise.save();
 
-    res.json({ message: 'Exercise added!' });
+    res.json({ 
+      message: 'Exercise added!',
+      exercise: savedExercise, // Include the saved exercise in the response
+    });
     log.debug("[POST] New exercise added successfully");
   } catch (error) {
     res.status(400).json({ error: 'Error: ' + error.message });
@@ -82,18 +85,15 @@ router.put('/update/:id', async (req, res) => {
       const { username, exerciseType, description, duration, date } = req.body;
   
       if (!username || !exerciseType || !description || !duration || !date) {
-        res.status(400).json({ error: 'All fields are required' });
         log.debug("[PUT] 400 Error updating exercise - missing required field");
-        return;
-      }
-  
+        return res.status(400).json({ error: 'All fields are required' });
+
       const exercise = await Exercise.findById(req.params.id);
       if (!exercise) {
-        res.status(404).json({ error: 'Exercise not found' });
         log.debug("[PUT] 400 Error updating exercise - exercise not found " + req.params.id);
-        return;
+        return res.status(404).json({ error: 'Exercise not found' });
       }
-  
+
       exercise.username = username;
       exercise.exerciseType = exerciseType;
       exercise.description = description;
@@ -105,9 +105,8 @@ router.put('/update/:id', async (req, res) => {
       res.json({ message: 'Exercise updated!', exercise });
       log.debug("[PUT] Exercise updated successfully");
     } catch (error) {
-      console.error(error);
+      log.error("[PUT] 500 Error updating exercise - " + error.message);
       res.status(500).json({ error: 'An error occurred while updating the exercise' });
-      log.debug("[PUT] 500 Error updating exercise - " + error.message);
     }
   });
   
