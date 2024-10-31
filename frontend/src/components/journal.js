@@ -52,58 +52,58 @@ const Journal = ({ currentUser }) => {
             console.error('Failed to fetch exercises', error);
             setErrors([error.response ? error.response.data.error : 'No data found for the provided date range for the current user.']);
         }
-
-        useEffect(() => {
-            fetchExercises();
-        }, [currentUser, startDate, endDate]);
-
-        const goToPreviousWeek = () => {
-            setStartDate(moment(startDate).subtract(1, 'weeks').startOf('week').toDate());
-            setEndDate(moment(endDate).subtract(1, 'weeks').endOf('week').toDate());
-        };
-
-        const goToNextWeek = () => {
-            setStartDate(moment(startDate).add(1, 'weeks').startOf('week').toDate());
-            setEndDate(moment(endDate).add(1, 'weeks').endOf('week').toDate());
-        };
-
-        return (
-            <div className="journal-container">
-                <h4>Weekly Exercise Journal</h4>
-                <br />
-                <div className="date-range">
-                    <Button className="button-small" onClick={goToPreviousWeek}>
-                        &larr; Previous
-                    </Button>
-                    <span>
-                        {moment(startDate).format('YYYY-MM-DD')} to {moment(endDate).format('YYYY-MM-DD')}
-                    </span>
-                    <Button className="button-small" onClick={goToNextWeek}>
-                        Next &rarr;
-                    </Button>
-                </div>
-                <ul>
-                    {errors.length > 0 ? (
-                        <div className="error-messages">
-                            {errors.map((error, index) => (
-                                <p key={index} className="error-text">
-                                    {error}
-                                </p>
-                            ))}
-                        </div>
-                    ) : exercises.length > 0 ? (
-                        exercises.map((exercise, index) => (
-                            <li key={index} className="exercise-journal-data">
-                                {exercise.exerciseType} - {exercise.totalDuration} minutes
-                            </li>
-                        ))
-                    ) : (
-                        <li>No exercises found for this period.</li>
-                    )}
-                </ul>
-            </div>
-        );
     };
+
+    useEffect(() => {
+        fetchExercises();
+    }, [currentUser, startDate, endDate]);
+
+    const goToPreviousWeek = () => {
+        setStartDate(moment(startDate).subtract(1, 'weeks').startOf('week').toDate());
+        setEndDate(moment(endDate).subtract(1, 'weeks').endOf('week').toDate());
+    };
+
+    const goToNextWeek = () => {
+        setStartDate(moment(startDate).add(1, 'weeks').startOf('week').toDate());
+        setEndDate(moment(endDate).add(1, 'weeks').endOf('week').toDate());
+    };
+
+    return (
+        <div className="journal-container">
+            <h4>Weekly Exercise Journal</h4>
+            <br />
+            <div className="date-range">
+                <Button className="button-small" onClick={goToPreviousWeek}>
+                    &larr; Previous
+                </Button>
+                <span>
+                    {moment(startDate).format('YYYY-MM-DD')} to {moment(endDate).format('YYYY-MM-DD')}
+                </span>
+                <Button className="button-small" onClick={goToNextWeek}>
+                    Next &rarr;
+                </Button>
+            </div>
+            <ul>
+                {errors.length > 0 ? (
+                    <div className="error-messages">
+                        {errors.map((error, index) => (
+                            <p key={index} className="error-text">
+                                {error}
+                            </p>
+                        ))}
+                    </div>
+                ) : exercises.length > 0 ? (
+                    exercises.map((exercise, index) => (
+                        <li key={index} className="exercise-journal-data">
+                            {exercise.exerciseType} - {exercise.totalDuration} minutes
+                        </li>
+                    ))
+                ) : (
+                    <li>No exercises found for this period.</li>
+                )}
+            </ul>
+        </div>
+    );
 };
 
 export default Journal;
