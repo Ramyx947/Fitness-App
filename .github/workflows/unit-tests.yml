@@ -3,8 +3,16 @@ name: Reusable Unit Testing Workflow
 on:
   workflow_call:
     inputs:
-      services:
-        description: 'List of services to test'
+      service:
+        description: 'Name of the service to test'
+        required: true
+        type: string
+      language:
+        description: 'Programming language of the service'
+        required: true
+        type: string
+      working_directory:
+        description: 'Directory of the service'
         required: true
         type: string
 
@@ -21,55 +29,58 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Environment
+      - name: Set up Environment for ${{ inputs.language }}
         run: |
-          case "${{ matrix.service }}" in
-            frontend | activity-tracking)
-              echo "Setting up Node.js"
-              actions/setup-node@v3
-              node-version: '18'
+          case "${{ inputs.language }}" in
+            node)
+              # Node.js setup will be handled separately
               ;;
-            analytics | recipes)
-              echo "Setting up Python"
+            python)
               sudo apt-get update && sudo apt-get install -y python3-pip
               ;;
-            authservice)
-              echo "Setting up Java"
+            java)
               sudo apt-get update && sudo apt-get install -y openjdk-11-jdk
               ;;
             *)
-              echo "Unsupported service"
+              echo "Unsupported language: ${{ inputs.language }}"
               exit 1
               ;;
           esac
-        working-directory: ./${{ matrix.service }}
+        working-directory: ${{ inputs.working_directory }}
+
+      - name: Set up Node.js
+        if: ${{ inputs.language == 'node' }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
 
       - name: Install Dependencies
         run: |
-          case "${{ matrix.service }}" in
-            frontend | activity-tracking)
+          case "${{ inputs.language }}" in
+            node)
               npm ci
               ;;
-            analytics | recipes)
+            python)
               pip3 install -r requirements.txt
               ;;
-            authservice)
+            java)
               ./gradlew build --no-daemon
               ;;
           esac
-        working-directory: ./${{ matrix.service }}
+        working-directory: ${{ inputs.working_directory }}
 
       - name: Run Unit Tests
         run: |
-          case "${{ matrix.service }}" in
-            frontend | activity-tracking)
+          case "${{ inputs.language }}" in
+            node)
               npm test
               ;;
-            analytics | recipes)
+            python)
               pytest || true
               ;;
-            authservice)
+            java)
               ./gradlew test --no-daemon
               ;;
           esac
-        working-directory: ./${{ matrix.service }}
+        working-directory: ${{ inputs.working_directory }}

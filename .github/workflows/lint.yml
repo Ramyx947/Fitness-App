@@ -3,74 +3,95 @@ name: Reusable Linting Workflow
 on:
   workflow_call:
     inputs:
-      services:
-        description: 'List of services to lint'
+      service:
+        description: 'Name of the service to lint'
+        required: true
+        type: string
+      language:
+        description: 'Programming language of the service'
+        required: true
+        type: string
+      working_directory:
+        description: 'Directory of the service'
         required: true
         type: string
 
 jobs:
   lint:
-    name: Lint Changed Services
+    name: Lint ${{ inputs.service }}
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service: ${{ fromJson(inputs.services) }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Set up Environment
+      - name: Set up Environment for ${{ inputs.language }}
         run: |
-          case "${{ matrix.service }}" in
-            frontend | activity-tracking)
-              echo "Setting up Node.js"
-              actions/setup-node@v3
-              node-version: '18'  # Ensure compatible version with project
+          case "${{ inputs.language }}" in
+            python)
+              sudo apt-get update
+              sudo apt-get install -y python3-pip
               ;;
-            analytics | recipes)
-              echo "Setting up Python"
-              sudo apt-get update && sudo apt-get install -y python3-pip
+            java)
+              sudo apt-get update
+              sudo apt-get install -y openjdk-11-jdk
               ;;
-            authservice)
-              echo "Setting up Java"
-              sudo apt-get update && sudo apt-get install -y openjdk-11-jdk
+            node)
+              # Node.js setup will be handled separately
               ;;
             *)
-              echo "Unsupported service"
+              echo "Unsupported language: ${{ inputs.language }}"
               exit 1
               ;;
           esac
-        working-directory: ./${{ matrix.service }}
+        working-directory: ${{ inputs.working_directory }}
+
+      - name: Set up Node.js
+        if: ${{ inputs.language == 'node' }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
 
       - name: Install Dependencies
         run: |
-          case "${{ matrix.service }}" in
-            frontend | activity-tracking)
+          case "${{ inputs.language }}" in
+            node)
               npm ci
               ;;
-            analytics | recipes)
+            python)
               pip3 install -r requirements.txt
               pip3 install flake8
               ;;
-            authservice)
+            java)
               ./gradlew checkstyleMain --no-daemon
               ;;
           esac
-        working-directory: ./${{ matrix.service }}
+        working-directory: ${{ inputs.working_directory }}
 
       - name: Run Linter
         run: |
-          case "${{ matrix.service }}" in
-            frontend | activity-tracking)
+          case "${{ inputs.language }}" in
+            node)
               npm run lint
               ;;
-            analytics | recipes)
+            python)
               flake8 . || true
               ;;
-            authservice)
+            java)
               ./gradlew checkstyleMain --no-daemon
               ;;
           esac
-        working-directory: ./${{ matrix.service }}
+        working-directory: ${{ inputs.working_directory }}
+
+      # Optional: Upload Lint Errors
+      - name: Upload Lint Errors
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.service }}-lint-errors
+          path: |
+            ${{ inputs.working_directory }}/lint-errors.log
+            ${{ inputs.working_directory }}/flake8-errors.log
+            ${{ inputs.working_directory }}/checkstyle-errors.log
