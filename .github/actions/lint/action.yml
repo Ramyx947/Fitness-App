@@ -20,6 +20,7 @@ runs:
         fetch-depth: 0
 
     - name: Set up Environment for ${{ inputs.language }}
+      shell: bash
       run: |
         case "${{ inputs.language }}" in
           python)
@@ -48,6 +49,7 @@ runs:
         cache: 'npm'
 
     - name: Install Dependencies
+      shell: bash
       run: |
         case "${{ inputs.language }}" in
           node)
@@ -64,6 +66,7 @@ runs:
       working-directory: ${{ inputs.working_directory }}
 
     - name: Run Linter
+      shell: bash
       run: |
         case "${{ inputs.language }}" in
           node)
