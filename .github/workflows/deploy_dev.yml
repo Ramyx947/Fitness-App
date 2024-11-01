@@ -94,7 +94,7 @@ jobs:
   lint:
     name: Run Linting
     needs: determine_changes
-    if: ${{ fromJson(needs.determine_changes.outputs.services)[0] && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_lint == 'true') }}
+    if: ${{ needs.determine_changes.outputs.services != '[]' && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_lint == 'true') }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -139,7 +139,7 @@ jobs:
   unit_tests:
     name: Run Unit Tests
     needs: determine_changes
-    if: ${{ fromJson(needs.determine_changes.outputs.services)[0] && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_unit_tests == 'true') }}
+    if: ${{ needs.determine_changes.outputs.services != '[]' && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_lint == 'true') }}
     runs-on: ubuntu-latest
     strategy:
       matrix:

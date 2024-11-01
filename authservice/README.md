@@ -89,6 +89,3 @@ Responses:
                     └── auth
                         └── AuthserviceApplicationTests.java
 ```
-
-## Tests changes
-###### to be removed
