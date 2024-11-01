@@ -77,15 +77,16 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.services }}" ]; then
             if [ -z "${{ github.event.inputs.services }}" ]; then
-              echo "services=[]" >> $GITHUB_OUTPUT
+              SERVICES_JSON='[]'
             else
               SERVICES_JSON=$(echo "${{ github.event.inputs.services }}" | tr ',' '\n' | jq -R . | jq -s .)
-              echo "services=$SERVICES_JSON" >> $GITHUB_OUTPUT
             fi
           else
-            echo "services=${{ steps.filter.outputs.changes }}" >> $GITHUB_OUTPUT
+            SERVICES_JSON='${{ steps.filter.outputs.changes }}'
           fi
-      
+          echo "services<<EOF" >> $GITHUB_OUTPUT
+          echo "$SERVICES_JSON" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Debug Services Output
         run: |
