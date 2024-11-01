@@ -1,16 +1,16 @@
-name: Reusable Linting Workflow
+name: Reusable Unit Testing Workflow
 
 on:
   workflow_call:
     inputs:
       services:
-        description: 'List of services to lint'
+        description: 'List of services to test'
         required: true
         type: string
 
 jobs:
-  lint:
-    name: Lint Changed Services
+  unit_tests:
+    name: Run Unit Tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -27,7 +27,7 @@ jobs:
             frontend | activity-tracking)
               echo "Setting up Node.js"
               actions/setup-node@v3
-              node-version: '18'  # Ensure compatible version with project
+              node-version: '18'
               ;;
             analytics | recipes)
               echo "Setting up Python"
@@ -52,25 +52,24 @@ jobs:
               ;;
             analytics | recipes)
               pip3 install -r requirements.txt
-              pip3 install flake8
               ;;
             authservice)
-              ./gradlew checkstyleMain --no-daemon
+              ./gradlew build --no-daemon
               ;;
           esac
         working-directory: ./${{ matrix.service }}
 
-      - name: Run Linter
+      - name: Run Unit Tests
         run: |
           case "${{ matrix.service }}" in
             frontend | activity-tracking)
-              npm run lint
+              npm test
               ;;
             analytics | recipes)
-              flake8 . || true
+              pytest || true
               ;;
             authservice)
-              ./gradlew checkstyleMain --no-daemon
+              ./gradlew test --no-daemon
               ;;
           esac
         working-directory: ./${{ matrix.service }}

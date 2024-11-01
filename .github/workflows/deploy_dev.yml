@@ -27,138 +27,55 @@ on:
 
 
 jobs:
-  # determine_changes:
-  #   name: Determine Changed Services
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     services: ${{ steps.set_services.outputs.services }}
-  #   steps:
-  #     - name: Checkout Code
-  #       uses: actions/checkout@v3
-  #       with:
-  #         fetch-depth: 0
-
-  #     - name: Determine Changed Services
-  #       id: filter
-  #       uses: dorny/paths-filter@v2
-  #       with:
-  #         filters: |
-  #           frontend:
-  #             - 'frontend/**'
-  #           activity-tracking:
-  #             - 'activity-tracking/**'
-  #           authservice:
-  #             - 'authservice/**'
-  #           analytics:
-  #             - 'analytics/**'
-  #           recipes:
-  #             - 'recipes/**'
-
-  #     - name: Set Services Output
-  #       id: set_services
-  #       run: |
-  #         SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r '[keys[] | select(. != "default")] | @json')
-  #         if [ -z "$SERVICES" ]; then
-  #           SERVICES='[]'
-  #         fi
-  #         echo "services=${SERVICES}" >> $GITHUB_OUTPUT
-            
-      
-  #     - name: Debug Services Output
-  #       run: |
-  #         echo "Changed services: ${{ steps.set_services.outputs.services }}"
-  #         echo "Services array:"
-  #         echo "${{ steps.set_services.outputs.services }}"
-        
-  #     - name: Validate Services JSON
-  #       run: |
-  #         echo "${{ steps.set_services.outputs.services }}" | jq empty
-  #         echo "Services JSON is valid."
-            
-            
-            
-      
-  #     - name: Debug Services Output
-  #       run: |
-  #         echo "Changed services: ${{ steps.set_services.outputs.services }}"
-
-
-  lint_and_test_frontend:
-    name: Lint and Test Frontend
+  determine_changes:
+    name: Determine Changed Services
     runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.set_services.outputs.services }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
         with:
-          node-version: '18.18.0' # Ensure compatibility with ESLint and Jest
+          fetch-depth: 0
 
-      - name: Install Dependencies
-        run: |
-          cd frontend
-          npm install
-
-      - name: Run Lint
-        run: |
-          cd frontend
-          npm run lint
-
-      - name: Run Unit Tests
-        run: |
-          cd frontend
-          npm test
-
-  lint_and_test_activity_tracking:
-    name: Lint and Test Activity Tracking
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Determine Changed Services
+        id: filter
+        uses: dorny/paths-filter@v2
         with:
-          node-version: '18.18.0' # Ensure compatibility with ESLint and Jest
+          filters: |
+            frontend:
+              - 'frontend/**'
+            activity-tracking:
+              - 'activity-tracking/**'
+            authservice:
+              - 'authservice/**'
+            analytics:
+              - 'analytics/**'
+            recipes:
+              - 'recipes/**'
 
-      - name: Install Dependencies
+      - name: Set Services Output
+        id: set_services
         run: |
-          cd activity-tracking
-          npm install --legacy-peer-deps # Use legacy peer deps to avoid conflicts
+          SERVICES=$(echo "${{ steps.filter.outputs }}" | jq -r '[keys[] | select(. != "default")] | @json')
+          echo "services=${SERVICES}" >> $GITHUB_OUTPUT
 
-      - name: Run Lint
-        run: |
-          cd activity-tracking
-          npm run lint
 
-      - name: Run Unit Tests
-        run: |
-          cd activity-tracking
-          npm test
-  # lint_authservice:
-  #   name: Lint AuthService
-  #   uses: ./.github/workflows/lint.yml
-  #   with:
-  #     service: authservice
-  #     language: java
-  #     working_directory: authservice
-
-  # lint_analytics:
-  #   name: Lint Analytics
-  #   uses: ./.github/workflows/lint.yml
-  #   with:
-  #     service: analytics
-  #     language: python
-  #     working_directory: analytics
-
-  lint_recipes:
-    name: Lint Recipes
+  lint:
+    name: Run Linting
+    needs: determine_changes
+    if: needs.determine_changes.outputs.services != '[]'
     uses: ./.github/workflows/lint.yml
     with:
-      service: recipes
-      language: python
-      working_directory: recipes
+      services: ${{ needs.determine_changes.outputs.services }}
+
+  unit_tests:
+    name: Run Unit Tests
+    needs: determine_changes
+    if: needs.determine_changes.outputs.services != '[]'
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      services: ${{ needs.determine_changes.outputs.services }}
   
   build_and_deploy:
     name: Build and Deploy to Docker Hub
