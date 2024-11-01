@@ -7,7 +7,6 @@ The Activity Tracking Service is an application designed to track user activites
 - User can log different types of activities with datetimes
 - A list of activities can be retreieved for a given user
 
-
 ## Technologies used
 MongoDB
 Express.js
@@ -87,3 +86,6 @@ npm run cy:run
     "date": "2024-10-15T14:40:35.364Z"
 }
 ```
+
+## Tests changes
+###### to be removed

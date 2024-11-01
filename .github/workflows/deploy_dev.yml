@@ -54,8 +54,9 @@ jobs:
 
       - name: Determine Changed Services
         id: filter
-        uses: dorny/paths-filter@v2
+        uses: dorny/paths-filter@v3
         with:
+          base: develop
           filters: |
             frontend:
               - 'frontend/**'
@@ -68,18 +69,20 @@ jobs:
             recipes:
               - 'recipes/**'
 
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Set Services Output
         id: set_services
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.services }}" ]; then
-            SERVICES="${{ github.event.inputs.services }}"
+            if [ -z "${{ github.event.inputs.services }}" ]; then
+              SERVICES_JSON='[]'
+            else
+              SERVICES_JSON=$(echo "${{ github.event.inputs.services }}" | tr ',' '\n' | jq -R . | jq -s .)
+            fi
           else
-            SERVICES="${{ steps.filter.outputs.matched }}"
-          fi
-          if [ -z "$SERVICES" ]; then
-            SERVICES_JSON='[]'
-          else
-            SERVICES_JSON=$(echo "$SERVICES" | tr ',' '\n' | jq -R . | jq -s .)
+            SERVICES_JSON='${{ toJson(steps.filter.outputs.changes) }}'
           fi
           echo "services=${SERVICES_JSON}" >> $GITHUB_OUTPUT
 
