@@ -102,6 +102,9 @@ jobs:
       matrix:
         service: ${{ fromJson(needs.determine_changes.outputs.services) }}
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
       - name: Set Service Variables
         run: |
           case "${{ matrix.service }}" in
@@ -147,6 +150,9 @@ jobs:
       matrix:
         service: ${{ fromJson(needs.determine_changes.outputs.services) }}
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
       - name: Set Service Variables
         run: |
           case "${{ matrix.service }}" in
