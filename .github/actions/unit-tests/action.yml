@@ -45,7 +45,7 @@ runs:
       with:
         node-version: '18'
         cache: 'npm'
-      working-directory: ${{ inputs.working_directory }}
+        cache-dependency-path: ${{ inputs.working_directory }}/package-lock.json
 
     - name: Install Dependencies
       shell: bash
