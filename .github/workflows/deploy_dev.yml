@@ -84,6 +84,7 @@ jobs:
             fi
           else
             echo "services=${{ steps.filter.outputs.changes }}" >> $GITHUB_OUTPUT
+          fi
       
 
       - name: Debug Services Output

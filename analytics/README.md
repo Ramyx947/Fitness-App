@@ -40,4 +40,5 @@ If VS does not find poetry's virtual environment, the packages in the Python scr
 7. `poetry shell` to activate the virtual environment where poetry has installed the dependencies
 
 ### Test line 
+
 ### to be removed
