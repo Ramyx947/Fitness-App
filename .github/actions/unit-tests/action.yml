@@ -45,6 +45,7 @@ runs:
       with:
         node-version: '18'
         cache: 'npm'
+      working-directory: ${{ inputs.working_directory }}
 
     - name: Install Dependencies
       shell: bash
