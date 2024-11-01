@@ -5,7 +5,6 @@ authservice is a Spring Boot application that provides user authentication and r
 
 It provides endpoints for user sign up and login, ensuring secure password handling using Spring Security's PasswordEncoder.
 
-
 ## Features
 - User registration with username and password
 - User login with username and password

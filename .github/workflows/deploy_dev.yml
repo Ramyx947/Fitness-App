@@ -11,9 +11,11 @@ on:
   push:
     branches:
       - develop
+      - CI-workflow
   pull_request:
     branches:
       - develop
+      - CI-workflow
     types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:

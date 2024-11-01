@@ -17,7 +17,6 @@ The analytics service uses poetry for dependency management.
 
 Note: Never update the `pyproject.toml` file manually - it should be managed via the `poetry add / remove` commands. 
 
-
 ### Troubleshooting
 
 #### VS code cannot find packages
