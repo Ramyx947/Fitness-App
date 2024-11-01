@@ -23,9 +23,21 @@ on:
         description: 'Branch to deploy'
         required: false
         default: 'develop'
-      services: # Optional: Allow manual input of services
+      services:
         description: 'Comma-separated list of services to build and deploy'
         required: false
+      run_lint:
+        description: 'Run Lint Job (true/false)'
+        required: false
+        default: 'true'
+      run_unit_tests:
+        description: 'Run Unit Tests Job (true/false)'
+        required: false
+        default: 'true'
+      run_build_and_deploy:
+        description: 'Run Build and Deploy Job (true/false)'
+        required: false
+        default: 'true'
 
 
 jobs:
@@ -79,7 +91,7 @@ jobs:
   lint:
     name: Run Linting
     needs: determine_changes
-    if: ${{ fromJson(needs.determine_changes.outputs.services)[0] }}
+    if: ${{ fromJson(needs.determine_changes.outputs.services)[0] && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_lint == 'true') }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -124,7 +136,7 @@ jobs:
   unit_tests:
     name: Run Unit Tests
     needs: determine_changes
-    if: ${{ fromJson(needs.determine_changes.outputs.services)[0] }}
+    if: ${{ fromJson(needs.determine_changes.outputs.services)[0] && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_unit_tests == 'true') }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
