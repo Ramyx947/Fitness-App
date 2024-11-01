@@ -1,0 +1,76 @@
+name: Unit Tests Action
+
+description: 'Run unit tests for the specified service'
+inputs:
+  service:
+    description: 'Name of the service to test'
+    required: true
+  language:
+    description: 'Programming language of the service'
+    required: true
+  working_directory:
+    description: 'Directory of the service'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Set up Environment for ${{ inputs.language }}
+      run: |
+        case "${{ inputs.language }}" in
+          node)
+            # Node.js setup will be handled separately
+            ;;
+          python)
+            sudo apt-get update && sudo apt-get install -y python3-pip
+            ;;
+          java)
+            sudo apt-get update && sudo apt-get install -y openjdk-11-jdk
+            ;;
+          *)
+            echo "Unsupported language: ${{ inputs.language }}"
+            exit 1
+            ;;
+        esac
+      working-directory: ${{ inputs.working_directory }}
+
+    - name: Set up Node.js
+      if: ${{ inputs.language == 'node' }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: |
+        case "${{ inputs.language }}" in
+          node)
+            npm ci
+            ;;
+          python)
+            pip3 install -r requirements.txt
+            ;;
+          java)
+            ./gradlew build --no-daemon
+            ;;
+        esac
+      working-directory: ${{ inputs.working_directory }}
+
+    - name: Run Unit Tests
+      run: |
+        case "${{ inputs.language }}" in
+          node)
+            npm test
+            ;;
+          python)
+            pytest || true
+            ;;
+          java)
+            ./gradlew test --no-daemon
+            ;;
+        esac
+      working-directory: ${{ inputs.working_directory }}

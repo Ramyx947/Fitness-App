@@ -131,8 +131,8 @@ jobs:
               ;;
           esac
 
-      - name: Call Lint Workflow
-        uses: ./.github/workflows/lint.yml
+      - name: Run Lint
+        uses: ./.github/actions/lint
         with:
           service: ${{ matrix.service }}
           language: ${{ env.language }}
@@ -176,8 +176,8 @@ jobs:
               ;;
           esac
 
-      - name: Call Unit Tests Workflow
-        uses: ./.github/workflows/unit-tests.yml
+      - name: Run Unit Tests
+        uses: ./.github/actions/unit-tests
         with:
           service: ${{ matrix.service }}
           language: ${{ env.language }}

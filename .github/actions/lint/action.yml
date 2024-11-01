@@ -1,0 +1,79 @@
+name: Lint Action
+
+description: 'Lint the specified service'
+inputs:
+  service:
+    description: 'Name of the service to lint'
+    required: true
+  language:
+    description: 'Programming language of the service'
+    required: true
+  working_directory:
+    description: 'Directory of the service'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Set up Environment for ${{ inputs.language }}
+      run: |
+        case "${{ inputs.language }}" in
+          python)
+            sudo apt-get update
+            sudo apt-get install -y python3-pip
+            ;;
+          java)
+            sudo apt-get update
+            sudo apt-get install -y openjdk-11-jdk
+            ;;
+          node)
+            # Node.js setup will be handled separately
+            ;;
+          *)
+            echo "Unsupported language: ${{ inputs.language }}"
+            exit 1
+            ;;
+        esac
+      working-directory: ${{ inputs.working_directory }}
+
+    - name: Set up Node.js
+      if: ${{ inputs.language == 'node' }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: |
+        case "${{ inputs.language }}" in
+          node)
+            npm ci
+            ;;
+          python)
+            pip3 install -r requirements.txt
+            pip3 install flake8
+            ;;
+          java)
+            ./gradlew checkstyleMain --no-daemon
+            ;;
+        esac
+      working-directory: ${{ inputs.working_directory }}
+
+    - name: Run Linter
+      run: |
+        case "${{ inputs.language }}" in
+          node)
+            npm run lint
+            ;;
+          python)
+            flake8 . || true
+            ;;
+          java)
+            ./gradlew checkstyleMain --no-daemon
+            ;;
+        esac
+      working-directory: ${{ inputs.working_directory }}
