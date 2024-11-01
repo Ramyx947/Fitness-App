@@ -77,7 +77,7 @@ jobs:
   lint:
     name: Run Linting
     needs: determine_changes
-    if: ${{ fromJson(needs.determine_changes.outputs.services) != [] }}
+    if: ${{ fromJson(needs.determine_changes.outputs.services) | length > 0 }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -122,7 +122,7 @@ jobs:
   unit_tests:
     name: Run Unit Tests
     needs: determine_changes
-    if: ${{ fromJson(needs.determine_changes.outputs.services) != [] }}
+    if: ${{ fromJson(needs.determine_changes.outputs.services) | length > 0 }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
