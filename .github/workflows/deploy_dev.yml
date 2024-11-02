@@ -59,12 +59,28 @@ jobs:
           git fetch origin develop:develop
       - name: Show Merge Base
         run: git merge-base origin/develop HEAD
+      
+      - name: Fetch all branches
+        run: |
+          git fetch --all
+          git branch -r
+
+      - name: Determine Base Branch
+        id: determine_base
+        run: |
+          # Check if 'develop' exists locally; if not, use 'origin/develop'
+          if git show-ref --verify --quiet refs/heads/develop; then
+            echo "base_branch=develop" >> $GITHUB_ENV
+          else
+            echo "base_branch=origin/develop" >> $GITHUB_ENV
+          fi
+        shell: bash
 
       - name: Determine Changed Services
         id: filter
         uses: dorny/paths-filter@v3
         with:
-          base: origin/develop
+          base: ${{ env.base_branch }}
           list-files: json
           filters: |
             frontend:
