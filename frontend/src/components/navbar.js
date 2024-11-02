@@ -47,6 +47,9 @@ const NavbarComponent = ({ onLogout }) => {
                         <Nav.Link className="custom-nav-link" onClick={onLogout}>
                             Logout
                         </Nav.Link>
+                        <Nav.Link className="custom-nav-link">
+                            TESTS to be removed
+                        </Nav.Link>
                     </Nav>
                 </Nav>
             </Navbar.Collapse>
