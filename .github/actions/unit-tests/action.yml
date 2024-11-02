@@ -40,7 +40,6 @@ runs:
         case "${{ inputs.language }}" in
           node)
             npm ci || npm install --verbose
-            fi
             ;;
           python)
             if [ -f "${{ github.workspace }}/${{ inputs.working_directory }}/pyproject.toml" ]; then
