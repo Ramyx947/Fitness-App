@@ -14,25 +14,20 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-
-    - name: Set up Environment for ${{ inputs.language }}
+    - name: Install Dependencies
       shell: bash
       run: |
+        set -e
         case "${{ inputs.language }}" in
+          node)
+            npm ci
+            ;;
           python)
-            sudo apt-get update
-            sudo apt-get install -y python3-pip
+            pip install --no-cache-dir -r requirements.txt
             ;;
           java)
-            sudo apt-get update
-            sudo apt-get install -y openjdk-11-jdk
-            ;;
-          node)
-            # Node.js setup will be handled separately
+            chmod +x gradlew
+            ./gradlew build --no-daemon
             ;;
           *)
             echo "Unsupported language: ${{ inputs.language }}"
@@ -41,43 +36,23 @@ runs:
         esac
       working-directory: ${{ inputs.working_directory }}
 
-    - name: Set up Node.js
-      if: ${{ inputs.language == 'node' }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: ${{ inputs.working_directory }}/package-lock.json
-
-    - name: Install Dependencies
-      shell: bash
-      run: |
-        case "${{ inputs.language }}" in
-          node)
-            npm ci
-            ;;
-          python)
-            pip3 install -r requirements.txt
-            pip3 install flake8
-            ;;
-          java)
-            ./gradlew checkstyleMain --no-daemon
-            ;;
-        esac
-      working-directory: ${{ inputs.working_directory }}
-
     - name: Run Linter
       shell: bash
       run: |
+        set -e
         case "${{ inputs.language }}" in
           node)
             npm run lint
             ;;
           python)
-            flake8 . || true
+            flake8 .
             ;;
           java)
             ./gradlew checkstyleMain --no-daemon
+            ;;
+          *)
+            echo "Unsupported language: ${{ inputs.language }}"
+            exit 1
             ;;
         esac
       working-directory: ${{ inputs.working_directory }}

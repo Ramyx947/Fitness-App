@@ -5,7 +5,7 @@
 # It also checks commit messages for the service's name to determine if the service needs rebuilding.
 # Ensure that DOCKER_USERNAME and DOCKER_PASSWORD are added to GitHub secrets for authentication.
 # ––––––––––––––––––––––––––––––––
-name: Test Deploy to Docker Hub
+name: Build and Deploy to Docker Hub
 
 on:
   push:
@@ -39,7 +39,6 @@ on:
         required: false
         default: 'true'
 
-
 jobs:
   determine_changes:
     name: Determine Changed Services
@@ -69,20 +68,22 @@ jobs:
             recipes:
               - 'recipes/**'
 
-      - name: Install jq
-        run: sudo apt-get install -y jq
-
       - name: Set Services Output
         id: set_services
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.services }}" ]; then
+          set -e
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             if [ -z "${{ github.event.inputs.services }}" ]; then
-              SERVICES_JSON='[]'
+              SERVICES_JSON='["frontend", "activity-tracking", "authservice", "analytics", "recipes"]'
             else
               SERVICES_JSON=$(echo "${{ github.event.inputs.services }}" | tr ',' '\n' | jq -R . | jq -s .)
             fi
           else
             SERVICES_JSON='${{ steps.filter.outputs.changes }}'
+          fi
+          if [ -z "$SERVICES_JSON" ] || [ "$SERVICES_JSON" == '[]' ]; then
+            echo "No services determined for deployment."
+            exit 1
           fi
           echo "services<<EOF" >> $GITHUB_OUTPUT
           echo "$SERVICES_JSON" >> $GITHUB_OUTPUT
@@ -91,7 +92,6 @@ jobs:
       - name: Debug Services Output
         run: |
           echo "Changed services: ${{ steps.set_services.outputs.services }}"
-
 
   lint:
     name: Run Linting
@@ -107,7 +107,9 @@ jobs:
 
       - name: Set Service Variables
         run: |
-          case "${{ matrix.service }}" in
+          set -e
+          SERVICE=$(echo "${{ matrix.service }}" | tr '[:upper:]' '[:lower:]')
+          case "$SERVICE" in
             frontend)
               echo "language=node" >> $GITHUB_ENV
               echo "working_directory=frontend" >> $GITHUB_ENV
@@ -129,10 +131,43 @@ jobs:
               echo "working_directory=authservice" >> $GITHUB_ENV
               ;;
             *)
-              echo "Unsupported service: ${{ matrix.service }}"
+              echo "Unsupported service: $SERVICE"
               exit 1
               ;;
           esac
+
+      # Set up language environments
+      - name: Set up Node.js
+        if: ${{ env.language == 'node' }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ${{ env.working_directory }}/package-lock.json
+
+      - name: Set up Python
+        if: ${{ env.language == 'python' }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+          cache: 'pip'
+          cache-dependency-path: ${{ env.working_directory }}/requirements.txt
+
+      - name: Set up Java
+        if: ${{ env.language == 'java' }}
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+      
+      - name: Cache Gradle Dependencies
+        if: ${{ env.language == 'java' }}
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles(format('{0}/**/*.gradle*', env.working_directory)) }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Run Lint
         uses: ./.github/actions/lint
@@ -144,7 +179,7 @@ jobs:
   unit_tests:
     name: Run Unit Tests
     needs: determine_changes
-    if: ${{ needs.determine_changes.outputs.services != '[]' && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_lint == 'true') }}
+    if: ${{ needs.determine_changes.outputs.services != '[]' && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_unit_tests == 'true') }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -155,7 +190,9 @@ jobs:
 
       - name: Set Service Variables
         run: |
-          case "${{ matrix.service }}" in
+          set -e
+          SERVICE=$(echo "${{ matrix.service }}" | tr '[:upper:]' '[:lower:]')
+          case "$SERVICE" in
             frontend)
               echo "language=node" >> $GITHUB_ENV
               echo "working_directory=frontend" >> $GITHUB_ENV
@@ -177,10 +214,43 @@ jobs:
               echo "working_directory=authservice" >> $GITHUB_ENV
               ;;
             *)
-              echo "Unsupported service: ${{ matrix.service }}"
+              echo "Unsupported service: $SERVICE"
               exit 1
               ;;
           esac
+
+      # Set up language environments
+      - name: Set up Node.js
+        if: ${{ env.language == 'node' }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ${{ env.working_directory }}/package-lock.json
+
+      - name: Set up Python
+        if: ${{ env.language == 'python' }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          cache: 'pip'
+          cache-dependency-path: ${{ env.working_directory }}/requirements.txt
+
+      - name: Set up Java
+        if: ${{ env.language == 'java' }}
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+      
+      - name: Cache Gradle Dependencies
+        if: ${{ env.language == 'java' }}
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles(format('{0}/**/*.gradle*', env.working_directory)) }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Run Unit Tests
         uses: ./.github/actions/unit-tests
@@ -189,9 +259,12 @@ jobs:
           language: ${{ env.language }}
           working_directory: ${{ env.working_directory }}
 
-  
   build_and_deploy:
     name: Build and Deploy to Docker Hub
+    needs:
+      - lint
+      - unit_tests
+    if: ${{ needs.determine_changes.outputs.services != '[]' && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_build_and_deploy == 'true') }}
     runs-on: ubuntu-latest
     env:
       NODE_ENV: ${{ secrets.NODE_ENV_DEV }}
@@ -202,9 +275,8 @@ jobs:
       MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      REACT_APP_API_URL: http://localhost:8080
+      REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
       MONGO_DB_AUTH_DATABASE: authservice-dev
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -217,42 +289,31 @@ jobs:
           install: true
           version: latest
 
-      - name: Install Docker Compose
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
-      
-      - name: Verify Docker Compose Version
-        run: |
-          docker-compose --version
-          COMPOSE_VERSION=$(docker-compose version --short)
-          echo "Docker Compose version: $COMPOSE_VERSION"
-
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ hashFiles('docker-compose.yml', 'docker-compose.develop.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-    
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Build and push Docker images for all services
-      - name: Build and Push Docker Images for All Services
+      - name: Build and Push Docker Images for Changed Services
         env:
-          SERVICES: "frontend activity-tracking"
+          SERVICES: ${{ needs.determine_changes.outputs.services }}
         run: |
+          set -e
+          SERVICES=$(echo $SERVICES | jq -r '.[]')
           for service in $SERVICES; do
             echo "Building and pushing Docker image for $service"
-            
+
             # Build the Docker image
-            docker build -t $DOCKER_USERNAME/$service:latest -f ./$service/Dockerfile ./$service
-            
-            # Build and push the Docker image
-            docker buildx build --push -t $DOCKER_USERNAME/$service:latest -f ./$service/Dockerfile ./$service
+            docker build -t $DOCKER_USERNAME/$service:latest -f ./$service/Dockerfile ./$service || { echo "Docker build failed for $service"; exit 1; }
+
+            # Push the Docker image
+            docker push $DOCKER_USERNAME/$service:latest || { echo "Docker push failed for $service"; exit 1; }
           done
+
+      # Optional: Scan Docker images for vulnerabilities
+      # - name: Scan Docker Image for Vulnerabilities
+      #   run: |
+      #     for service in $SERVICES; do
+      #       docker scan $DOCKER_USERNAME/$service:latest || true
+      #     done
