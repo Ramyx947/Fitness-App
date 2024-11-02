@@ -47,7 +47,7 @@ jobs:
       services: ${{ steps.set_services.outputs.services }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       ## Debugging & logging
@@ -167,7 +167,7 @@ jobs:
         service: ${{ fromJson(needs.determine_changes.outputs.services) }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set Service Variables
         run: |
@@ -250,7 +250,7 @@ jobs:
         service: ${{ fromJson(needs.determine_changes.outputs.services) }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set Service Variables
         run: |
@@ -343,7 +343,7 @@ jobs:
       MONGO_DB_AUTH_DATABASE: authservice-dev
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
