@@ -23,7 +23,17 @@ runs:
             npm ci
             ;;
           python)
-            pip install --no-cache-dir -r requirements.txt
+            if [ -f "${{ inputs.working_directory }}/pyproject.toml" ]; then
+              # Install Poetry if not available
+              if ! command -v poetry &> /dev/null; then
+                curl -sSL https://install.python-poetry.org | python3 -
+                export PATH="$HOME/.local/bin:$PATH"
+              fi
+              poetry install --no-root -C "${{ inputs.working_directory }}"
+            else
+              echo "No dependency file found for Python in ${{ inputs.working_directory }}"
+              exit 1
+            fi
             ;;
           java)
             chmod +x gradlew
@@ -45,7 +55,7 @@ runs:
             npm run lint
             ;;
           python)
-            flake8 .
+            poetry run flake8 .
             ;;
           java)
             ./gradlew checkstyleMain --no-daemon
