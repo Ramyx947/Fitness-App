@@ -62,7 +62,7 @@ runs:
           java)
             if [ -f "${{ github.workspace }}/${{ inputs.working_directory }}/gradlew" ]; then
               chmod +x "${{ github.workspace }}/${{ inputs.working_directory }}/gradlew"
-              "${{ github.workspace }}/${{ inputs.working_directory }}/gradlew" build --no-daemon
+              "${{ github.workspace }}/${{ inputs.working_directory }}/gradlew" test --no-daemon
             else
               echo "gradlew not found in ${{ inputs.working_directory }}. Please check the directory structure."
               exit 1

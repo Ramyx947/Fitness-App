@@ -33,6 +33,12 @@ runs:
             ;;
         esac
 
+    - name: Debug Working Directory
+      shell: bash
+      run: |
+        echo "Checking working directory for Node.js:"
+        ls -la "${{ github.workspace }}/${{ inputs.working_directory }}"
+
     - name: Install Dependencies
       shell: bash
       run: |
@@ -40,10 +46,11 @@ runs:
         case "${{ inputs.language }}" in
           node)
             if [ -f "${{ github.workspace }}/${{ inputs.working_directory }}/package-lock.json" ]; then
+              echo "Found package-lock.json, running npm ci"
               npm ci
             else
               echo "No package-lock.json found; falling back to npm install"
-              npm install
+              npm install --verbose
             fi
             ;;
           python)
