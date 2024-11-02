@@ -65,7 +65,7 @@ jobs:
           git fetch --all
           git branch -r
       - name: List All Changed Files
-        run: git diff --name-only origin/develop...HEAD
+        run: git diff --name-status origin/develop...HEAD
       - name: Print Path Filter Output
         run: |
           echo "Path Filter Results:"
@@ -75,6 +75,10 @@ jobs:
           echo "Authservice changed: ${{ steps.filter.outputs.authservice }}"
           echo "Analytics changed: ${{ steps.filter.outputs.analytics }}"
           echo "Recipes changed: ${{ steps.filter.outputs.recipes }}"
+      - name: Check Git Status
+        run: |
+          git status
+          git ls-files -m
 
       - name: Determine Base Branch
         id: determine_base
@@ -115,6 +119,7 @@ jobs:
               paths:
                 - 'recipes/**'
               type: all
+          initial-fetch-depth: 100
 
       - name: Set Services Output
         id: set_services
