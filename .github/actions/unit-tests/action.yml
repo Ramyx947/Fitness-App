@@ -39,11 +39,7 @@ runs:
         set -e
         case "${{ inputs.language }}" in
           node)
-            if [ -f "${{ github.workspace }}/${{ inputs.working_directory }}/package-lock.json" ]; then
-              npm ci
-            else
-              echo "No package-lock.json found; falling back to npm install"
-              npm install
+            npm ci || npm install --verbose
             fi
             ;;
           python)
