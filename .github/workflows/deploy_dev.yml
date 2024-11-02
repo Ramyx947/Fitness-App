@@ -64,6 +64,16 @@ jobs:
         run: |
           git fetch --all
           git branch -r
+      - name: List All Changed Files
+        run: git diff --name-only origin/develop...HEAD
+      - name: Print Path Filter Output
+        run: |
+          echo "Path Filter Results:"
+          echo "Frontend changed: ${{ steps.filter.outputs.frontend }}"
+          echo "Activity-tracking changed: ${{ steps.filter.outputs.activity-tracking }}"
+          echo "Authservice changed: ${{ steps.filter.outputs.authservice }}"
+          echo "Analytics changed: ${{ steps.filter.outputs.analytics }}"
+          echo "Recipes changed: ${{ steps.filter.outputs.recipes }}"
 
       - name: Determine Base Branch
         id: determine_base
@@ -81,7 +91,7 @@ jobs:
         uses: dorny/paths-filter@v3
         with:
           base: ${{ env.base_branch }}
-          list-files: json
+          list-files: shell
           filters: |
             frontend:
               paths:
@@ -139,15 +149,6 @@ jobs:
       - name: Debug Services Output
         run: |
           echo "Changed services: ${{ steps.set_services.outputs.services }}"
-
-      - name: Print Path Filter Output
-        run: |
-          echo "Path Filter Results:"
-          echo "Frontend changed: ${{ steps.filter.outputs.frontend }}"
-          echo "Activity-tracking changed: ${{ steps.filter.outputs.activity-tracking }}"
-          echo "Authservice changed: ${{ steps.filter.outputs.authservice }}"
-          echo "Analytics changed: ${{ steps.filter.outputs.analytics }}"
-          echo "Recipes changed: ${{ steps.filter.outputs.recipes }}"
 
   lint:
     name: Run Linting
