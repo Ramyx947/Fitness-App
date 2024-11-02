@@ -55,7 +55,7 @@ jobs:
         id: filter
         uses: dorny/paths-filter@v3
         with:
-          base: origin/develop
+          base: develop
           filters: |
             frontend:
               paths:
@@ -122,6 +122,9 @@ jobs:
           echo "Authservice changed: ${{ steps.filter.outputs.authservice }}"
           echo "Analytics changed: ${{ steps.filter.outputs.analytics }}"
           echo "Recipes changed: ${{ steps.filter.outputs.recipes }}"
+      - name: List Remote Branches
+        run: |
+          git branch -r
 
   lint:
     name: Run Linting
