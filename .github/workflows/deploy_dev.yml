@@ -55,7 +55,7 @@ jobs:
         id: filter
         uses: dorny/paths-filter@v3
         with:
-          base: 'origin/develop'
+          base: 'develop'
           filters: |
             frontend:
               paths:
