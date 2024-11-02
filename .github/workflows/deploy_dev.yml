@@ -71,6 +71,7 @@ jobs:
           echo "Path Filter Results:"
           echo "Frontend changed: ${{ steps.filter.outputs.frontend }}"
           echo "Activity-tracking changed: ${{ steps.filter.outputs.activity-tracking }}"
+          echo "Activity-tracking changed files: ${{ steps.filter.outputs.activity-tracking_files }}"
           echo "Authservice changed: ${{ steps.filter.outputs.authservice }}"
           echo "Analytics changed: ${{ steps.filter.outputs.analytics }}"
           echo "Recipes changed: ${{ steps.filter.outputs.recipes }}"
@@ -86,11 +87,12 @@ jobs:
           fi
         shell: bash
 
+
       - name: Determine Changed Services
         id: filter
         uses: dorny/paths-filter@v3
         with:
-          base: ${{ env.base_branch }}
+          base: ${{ github.ref }}
           list-files: shell
           filters: |
             frontend:
