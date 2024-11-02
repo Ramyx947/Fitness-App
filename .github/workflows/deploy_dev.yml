@@ -58,19 +58,24 @@ jobs:
           base: 'origin/develop'
           filters: |
             frontend:
-              - 'frontend/**'
+              paths:
+                - 'frontend/**'
               type: all
             activity-tracking:
-              - 'activity-tracking/**'
+              paths:
+                - 'activity-tracking/**'
               type: all
             authservice:
-              - 'authservice/**'
+              paths:
+                - 'authservice/**'
               type: all
             analytics:
-              - 'analytics/**'
+              paths:
+                - 'analytics/**'
               type: all
             recipes:
-              - 'recipes/**'
+              paths:
+                - 'recipes/**'
               type: all
 
       - name: Set Services Output
@@ -108,7 +113,7 @@ jobs:
       - name: Debug Services Output
         run: |
           echo "Changed services: ${{ steps.set_services.outputs.services }}"
-      
+
       - name: Print Path Filter Output
         run: |
           echo "Path Filter Results:"
