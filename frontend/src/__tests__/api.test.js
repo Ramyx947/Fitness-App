@@ -1,28 +1,28 @@
-import axios from "axios";
-import MockAdapter from "axios-mock-adapter";
-import { trackExercise } from "../../src/api";
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
+import { trackExercise } from '../../src/api';
 
 describe('API Tests', () => {
-  let mock;
+    let mock;
 
-  beforeAll(() => {
-    mock = new MockAdapter(axios);
-  });
+    beforeAll(() => {
+        mock = new MockAdapter(axios);
+    });
 
-  afterEach(() => {
-    mock.reset();
-  });
+    afterEach(() => {
+        mock.reset();
+    });
 
-  afterAll(() => {
-    mock.restore();
-  });
+    afterAll(() => {
+        mock.restore();
+    });
 
-  it('should return an error when the API call fails', async () => {
-    const payload = { username: 'testUser', exerciseType: 'Swimming' };
+    it('should return an error when the API call fails', async () => {
+        const payload = { username: 'testUser', exerciseType: 'Swimming' };
 
-    const baseURL = "http://localhost:5300";
-    mock.onPost(`${baseURL}/exercises/add`).networkError();
+        const baseURL = 'http://localhost:5300';
+        mock.onPost(`${baseURL}/exercises/add`).networkError();
 
-    await expect(trackExercise(payload)).rejects.toThrow();
-  });
+        await expect(trackExercise(payload)).rejects.toThrow();
+    });
 });

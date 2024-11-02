@@ -1,0 +1,39 @@
+.recipe-container {
+    max-width: 600px;
+    margin: auto;
+    background-color: #f5f5f5;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+
+  h1 {
+    text-align: center;
+    color: #333;
+  }
+
+  .recipe-list {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  .recipe-item {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+  }
+
+  .recipe-name {
+    color: #2c3e50;
+  }
+
+  .cooking-time {
+    color: #7f8c8d;
+  }
+
+  .ingredient {
+    color: #1c2125;
+    background: #e0e0e0;
+  }

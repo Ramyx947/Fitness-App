@@ -1,6 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const config = require('./config.json');
+const { LogCategory } = require("./logging");
+const log = new LogCategory("activity-tracking-server.js");
+
 require('dotenv').config();
 
 const app = express();
@@ -16,12 +20,12 @@ app.use(express.json());
 if (process.env.NODE_ENV !== 'test') {
   mongoose
     .connect(mongoUri, { useNewUrlParser: true, dbName: mongoDb })
-    .then(() => console.log("MongoDB database connection established successfully"))
-    .catch((error) => console.error("MongoDB connection error:", error));
+    .then(() => log.info("MongoDB database connection established successfully"))
+    .catch((error) => log.error("MongoDB connection error:", error));
   
   const connection = mongoose.connection;
   connection.on('error', (error) => {
-    console.error("MongoDB connection error:", error);
+     log.error("MongoDB connection error:", error);
   });
 }
 
@@ -31,14 +35,14 @@ app.use('/exercises', exercisesRouter);
 
 // Error handling middleware
 app.use((err, req, res) => {
-  console.error(err.stack);
+  log.error(err.stack);
   res.status(500).send('Something went wrong!');
 });
 
 // Start the server
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => {
-    console.log(`Server is running on port: ${port}`);
+    log.info(`Server is running on port: ${port}`);
   });
 }
 
