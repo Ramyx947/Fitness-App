@@ -55,43 +55,68 @@ jobs:
         id: filter
         uses: dorny/paths-filter@v3
         with:
-          base: develop
+          base: 'origin/develop'
           filters: |
             frontend:
               - 'frontend/**'
+              type: all
             activity-tracking:
               - 'activity-tracking/**'
+              type: all
             authservice:
               - 'authservice/**'
+              type: all
             analytics:
               - 'analytics/**'
+              type: all
             recipes:
               - 'recipes/**'
+              type: all
 
       - name: Set Services Output
         id: set_services
         run: |
           set -e
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            if [ -z "${{ github.event.inputs.services }}" ]; then
-              SERVICES_JSON='["frontend", "activity-tracking", "authservice", "analytics", "recipes"]'
-            else
-              SERVICES_JSON=$(echo "${{ github.event.inputs.services }}" | tr ',' '\n' | jq -R . | jq -s .)
-            fi
-          else
-            SERVICES_JSON='${{ steps.filter.outputs.changes }}'
+          # Start with an empty array
+          SERVICES_JSON="[]"
+          if [ "${{ steps.filter.outputs.frontend }}" == "true" ]; then
+            SERVICES_JSON=$(echo "$SERVICES_JSON" | jq '. + ["frontend"]')
           fi
+          if [ "${{ steps.filter.outputs.activity-tracking }}" == "true" ]; then
+            SERVICES_JSON=$(echo "$SERVICES_JSON" | jq '. + ["activity-tracking"]')
+          fi
+          if [ "${{ steps.filter.outputs.authservice }}" == "true" ]; then
+            SERVICES_JSON=$(echo "$SERVICES_JSON" | jq '. + ["authservice"]')
+          fi
+          if [ "${{ steps.filter.outputs.analytics }}" == "true" ]; then
+            SERVICES_JSON=$(echo "$SERVICES_JSON" | jq '. + ["analytics"]')
+          fi
+          if [ "${{ steps.filter.outputs.recipes }}" == "true" ]; then
+            SERVICES_JSON=$(echo "$SERVICES_JSON" | jq '. + ["recipes"]')
+          fi
+
           if [ -z "$SERVICES_JSON" ] || [ "$SERVICES_JSON" == '[]' ]; then
             echo "No services determined for deployment."
             exit 1
           fi
+          
           echo "services<<EOF" >> $GITHUB_OUTPUT
           echo "$SERVICES_JSON" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      ## Debugging & logging
       - name: Debug Services Output
         run: |
           echo "Changed services: ${{ steps.set_services.outputs.services }}"
+      
+      - name: Print Path Filter Output
+        run: |
+          echo "Path Filter Results:"
+          echo "Frontend changed: ${{ steps.filter.outputs.frontend }}"
+          echo "Activity-tracking changed: ${{ steps.filter.outputs.activity-tracking }}"
+          echo "Authservice changed: ${{ steps.filter.outputs.authservice }}"
+          echo "Analytics changed: ${{ steps.filter.outputs.analytics }}"
+          echo "Recipes changed: ${{ steps.filter.outputs.recipes }}"
 
   lint:
     name: Run Linting
