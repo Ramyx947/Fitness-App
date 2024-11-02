@@ -39,7 +39,12 @@ runs:
         set -e
         case "${{ inputs.language }}" in
           node)
-            npm ci
+            if [ -f "${{ github.workspace }}/${{ inputs.working_directory }}/package-lock.json" ]; then
+              npm ci
+            else
+              echo "No package-lock.json found; falling back to npm install"
+              npm install
+            fi
             ;;
           python)
             if [ -f "${{ github.workspace }}/${{ inputs.working_directory }}/pyproject.toml" ]; then
@@ -55,8 +60,13 @@ runs:
             fi
             ;;
           java)
-            chmod +x gradlew
-            ./gradlew build --no-daemon
+            if [ -f "${{ github.workspace }}/${{ inputs.working_directory }}/gradlew" ]; then
+              chmod +x "${{ github.workspace }}/${{ inputs.working_directory }}/gradlew"
+              "${{ github.workspace }}/${{ inputs.working_directory }}/gradlew" build --no-daemon
+            else
+              echo "gradlew not found in ${{ inputs.working_directory }}. Please check the directory structure."
+              exit 1
+            fi
             ;;
           *)
             echo "Unsupported language: ${{ inputs.language }}"
