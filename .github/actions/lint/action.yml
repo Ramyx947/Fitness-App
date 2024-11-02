@@ -14,6 +14,25 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Set up Language Environment
+      shell: bash
+      run: |
+        case "${{ inputs.language }}" in
+          python)
+            echo "Python environment will be set up in the workflow."
+            ;;
+          java)
+            echo "Java environment will be set up in the workflow."
+            ;;
+          node)
+            echo "Node.js environment will be set up in the workflow."
+            ;;
+          *)
+            echo "Unsupported language: ${{ inputs.language }}"
+            exit 1
+            ;;
+        esac
+
     - name: Install Dependencies
       shell: bash
       run: |
@@ -23,15 +42,15 @@ runs:
             npm ci
             ;;
           python)
-            if [ -f "${{ inputs.working_directory }}/pyproject.toml" ]; then
+            if [ -f "${{ github.workspace }}/${{ inputs.working_directory }}/pyproject.toml" ]; then
               # Install Poetry if not available
               if ! command -v poetry &> /dev/null; then
                 curl -sSL https://install.python-poetry.org | python3 -
                 export PATH="$HOME/.local/bin:$PATH"
               fi
-              poetry install --no-root -C "${{ inputs.working_directory }}"
+              poetry install --no-root -C "${{ github.workspace }}/${{ inputs.working_directory }}"
             else
-              echo "No dependency file found for Python in ${{ inputs.working_directory }}"
+              echo "No pyproject.toml found in ${{ inputs.working_directory }}"
               exit 1
             fi
             ;;
@@ -44,7 +63,6 @@ runs:
             exit 1
             ;;
         esac
-      working-directory: ${{ inputs.working_directory }}
 
     - name: Run Linter
       shell: bash
