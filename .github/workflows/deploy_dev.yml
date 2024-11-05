@@ -56,7 +56,7 @@ jobs:
         run: |
           FILES=$(git diff --name-only origin/develop...HEAD)
           SERVICES="[]"
-          
+      
           if echo "$FILES" | grep -q '^frontend/'; then
             SERVICES=$(echo "$SERVICES" | jq '. + ["frontend"]')
           fi
@@ -72,10 +72,14 @@ jobs:
           if echo "$FILES" | grep -q '^recipes/'; then
             SERVICES=$(echo "$SERVICES" | jq '. + ["recipes"]')
           fi
+      
+          # Ensure SERVICES is a properly formatted JSON array and export it
+          SERVICES=$(echo "$SERVICES" | jq -c .)
           
-          # Ensure SERVICES is always a valid JSON array
+          # Use environment files instead of set-output
           echo "services=$SERVICES" >> $GITHUB_ENV
-          echo "::set-output name=services::$SERVICES"
+          echo "services=$SERVICES" >> $GITHUB_OUTPUT
+          
       - name: Debug Changed Services Output
         run: |
           echo "Services from determine_changes: ${{ needs.determine_changes.outputs.services }}"    
