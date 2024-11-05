@@ -19,14 +19,10 @@ type Recipe {
     nutrients: [NutrientToAmount]
 }
 
-type Recipes {
-    recipes: Recipe
-}
-
 type RecipesResult {
     success: Boolean!
     errors: [String]
-    results: [Recipes]
+    results: [Recipe]
 }
 
 type Query {
