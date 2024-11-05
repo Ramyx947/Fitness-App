@@ -30,12 +30,14 @@ router.post('/add', async (req, res) => {
       date: new Date(date),
     });
 
-    log.debug("[POST] Add a new exercise " + JSON.stringify({ username, exerciseType, description, duration: Number(duration), date: Date.parse(data)} ));
-    await newExercise.save();
+    log.debug("[POST] Add a new exercise " + JSON.stringify({ username, exerciseType, description, duration: Number(duration), date: Date.parse(date) }));
+    // Save the exercise and assign it to savedExercise
+    const savedExercise = await newExercise.save();
 
-    res.json({ 
+    // Return response with savedExercise
+    res.json({
       message: 'Exercise added!',
-      exercise: savedExercise, // Include the saved exercise in the response
+      exercise: savedExercise,
     });
     log.debug("[POST] New exercise added successfully");
   } catch (error) {
@@ -87,7 +89,7 @@ router.put('/update/:id', async (req, res) => {
       if (!username || !exerciseType || !description || !duration || !date) {
         log.debug("[PUT] 400 Error updating exercise - missing required field");
         return res.status(400).json({ error: 'All fields are required' });
-
+      }
       const exercise = await Exercise.findById(req.params.id);
       if (!exercise) {
         log.debug("[PUT] 400 Error updating exercise - exercise not found " + req.params.id);
