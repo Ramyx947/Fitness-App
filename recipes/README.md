@@ -38,3 +38,10 @@ If VS does not find poetry's virtual environment, the packages in the Python scr
 5. set `package-mode = false` in your `pyproject.toml` file under `[tool.poetry]`
 6. `poetry install` to regenerate the virtual environment
 7. `poetry shell` to activate the virtual environment where poetry has installed the dependencies
+
+### Running unit tests
+# running the whole test suite
+- `poetry run pytest`
+
+# running specific test file
+- `poetry run pytest tests/test_recipes.py -v`
