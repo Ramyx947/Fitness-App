@@ -73,6 +73,11 @@ jobs:
             SERVICES=$(echo "$SERVICES" | jq '. + ["recipes"]')
           fi
       
+          # If SERVICES is still empty, set it to a default empty array
+          if [ "$SERVICES" = "[]" ]; then
+            SERVICES="[]"
+          fi
+      
           # Export as environment variable in JSON format
           echo "services=$(echo "$SERVICES" | jq -c .)" >> $GITHUB_ENV
       
@@ -122,7 +127,9 @@ jobs:
               exit 1
               ;;
           esac
-
+      - name: Debug Changed Services Output
+        run: |
+          echo "Services: ${{ needs.determine_changes.outputs.services }}"
       # Set up language environments
       - name: Set up Node.js
         if: ${{ env.language == 'node' }}
