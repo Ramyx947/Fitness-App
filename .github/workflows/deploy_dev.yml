@@ -50,112 +50,115 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      ## Debugging & logging
-      - name: List Remote Branches
-        run: |
-          git branch -r
-      - name: Fetch develop branch
-        run: |
-          git fetch origin develop:develop
-      - name: Show Merge Base
-        run: git merge-base origin/develop HEAD
-      
-      - name: Fetch all branches
-        run: |
-          git fetch --all
-          git branch -r
-      - name: List All Changed Files
-        run: git diff --name-status origin/develop...HEAD
-      - name: Print Path Filter Output
-        run: |
-          echo "Path Filter Results:"
-          echo "Frontend changed: ${{ steps.filter.outputs.frontend }}"
-          echo "Activity-tracking changed: ${{ steps.filter.outputs.activity-tracking }}"
-          echo "Activity-tracking changed files: ${{ steps.filter.outputs.activity-tracking_files }}"
-          echo "Authservice changed: ${{ steps.filter.outputs.authservice }}"
-          echo "Analytics changed: ${{ steps.filter.outputs.analytics }}"
-          echo "Recipes changed: ${{ steps.filter.outputs.recipes }}"
-      - name: Check Git Status
-        run: |
-          git status
-          git ls-files -m
 
-      - name: Determine Base Branch
-        id: determine_base
-        run: |
-          # Check if 'develop' exists locally; if not, use 'origin/develop'
-          if git show-ref --verify --quiet refs/heads/develop; then
-            echo "base_branch=develop" >> $GITHUB_ENV
-          else
-            echo "base_branch=origin/develop" >> $GITHUB_ENV
-          fi
-        shell: bash
+      ## Debugging & logging
+      # - name: List Remote Branches
+      #   run: |
+      #     git branch -r
+
+      # - name: Fetch develop branch
+      #   run: |
+      #     git fetch origin develop:develop
+
+      # - name: Show Merge Base
+      #   run: git merge-base origin/develop HEAD
+      
+      # - name: Fetch all branches
+      #   run: |
+      #     git fetch --all
+      #     git branch -r
+
+      # - name: List All Changed Files
+      #   run: git diff --name-status origin/develop...HEAD
+
+      # - name: Print Path Filter Output
+      #   run: |
+      #     echo "Path Filter Results:"
+      #     echo "Frontend changed: ${{ steps.filter.outputs.frontend }}"
+      #     echo "Activity-tracking changed: ${{ steps.filter.outputs.activity-tracking }}"
+      #     echo "Activity-tracking changed files: ${{ steps.filter.outputs.activity-tracking_files }}"
+      #     echo "Authservice changed: ${{ steps.filter.outputs.authservice }}"
+      #     echo "Analytics changed: ${{ steps.filter.outputs.analytics }}"
+      #     echo "Recipes changed: ${{ steps.filter.outputs.recipes }}"
+
+      # - name: Check Git Status
+      #   run: |
+      #     git status
+      #     git ls-files -m
+
+      # - name: Determine Base Branch
+      #   id: determine_base
+      #   run: |
+      #     # Check if 'develop' exists locally; if not, use 'origin/develop'
+      #     if git show-ref --verify --quiet refs/heads/develop; then
+      #       echo "base_branch=develop" >> $GITHUB_ENV
+      #     else
+      #       echo "base_branch=origin/develop" >> $GITHUB_ENV
+      #     fi
+      #   shell: bash
 
 
       - name: Determine Changed Services
         id: filter
         uses: dorny/paths-filter@v3
         with:
-          base: ${{ github.ref }}
-          list-files: shell
+          base: develop
+          list-files: 'json'
           filters: |
             frontend:
               paths:
                 - 'frontend/**'
-              type: all
             activity-tracking:
               paths:
                 - 'activity-tracking/**'
-              type: all
             authservice:
               paths:
                 - 'authservice/**'
-              type: all
             analytics:
               paths:
                 - 'analytics/**'
-              type: all
             recipes:
               paths:
                 - 'recipes/**'
-              type: all
           initial-fetch-depth: 100
 
-      - name: Set Services Output
-        id: set_services
-        run: |
-          set -e
-          # Start with an empty array
-          SERVICES_JSON="[]"
-          if [ "${{ steps.filter.outputs.frontend }}" == "true" ]; then
-            SERVICES_JSON=$(echo "$SERVICES_JSON" | jq '. + ["frontend"]')
-          fi
-          if [ "${{ steps.filter.outputs.activity-tracking }}" == "true" ]; then
-            SERVICES_JSON=$(echo "$SERVICES_JSON" | jq '. + ["activity-tracking"]')
-          fi
-          if [ "${{ steps.filter.outputs.authservice }}" == "true" ]; then
-            SERVICES_JSON=$(echo "$SERVICES_JSON" | jq '. + ["authservice"]')
-          fi
-          if [ "${{ steps.filter.outputs.analytics }}" == "true" ]; then
-            SERVICES_JSON=$(echo "$SERVICES_JSON" | jq '. + ["analytics"]')
-          fi
-          if [ "${{ steps.filter.outputs.recipes }}" == "true" ]; then
-            SERVICES_JSON=$(echo "$SERVICES_JSON" | jq '. + ["recipes"]')
-          fi
+      # - name: Set Services Output
+      #   id: set_services
+      #   run: |
+      #     set -e
+      #     # Start with an empty array
+      #     SERVICES_JSON="[]"
+      #     if [ "${{ steps.filter.outputs.frontend }}" == "true" ]; then
+      #       SERVICES_JSON=$(echo "$SERVICES_JSON" | jq '. + ["frontend"]')
+      #     fi
+      #     if [ "${{ steps.filter.outputs.activity-tracking }}" == "true" ]; then
+      #       SERVICES_JSON=$(echo "$SERVICES_JSON" | jq '. + ["activity-tracking"]')
+      #     fi
+      #     if [ "${{ steps.filter.outputs.authservice }}" == "true" ]; then
+      #       SERVICES_JSON=$(echo "$SERVICES_JSON" | jq '. + ["authservice"]')
+      #     fi
+      #     if [ "${{ steps.filter.outputs.analytics }}" == "true" ]; then
+      #       SERVICES_JSON=$(echo "$SERVICES_JSON" | jq '. + ["analytics"]')
+      #     fi
+      #     if [ "${{ steps.filter.outputs.recipes }}" == "true" ]; then
+      #       SERVICES_JSON=$(echo "$SERVICES_JSON" | jq '. + ["recipes"]')
+      #     fi
 
-          if [ -z "$SERVICES_JSON" ] || [ "$SERVICES_JSON" == '[]' ]; then
-            echo "No services determined for deployment."
-            exit 1
-          fi
+      #     if [ -z "$SERVICES_JSON" ] || [ "$SERVICES_JSON" == '[]' ]; then
+      #       echo "No services determined for deployment."
+      #       exit 1
+      #     fi
           
-          echo "services<<EOF" >> $GITHUB_OUTPUT
-          echo "$SERVICES_JSON" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+      #     echo "services<<EOF" >> $GITHUB_OUTPUT
+      #     echo "$SERVICES_JSON" >> $GITHUB_OUTPUT
+      #     echo "EOF" >> $GITHUB_OUTPUT
 
-      ## Debugging & logging
-      - name: Debug Services Output
-        run: |
-          echo "Changed services: ${{ steps.set_services.outputs.services }}"
+      # ## Debugging & logging
+      # - name: Debug Services Output
+      #   run: |
+      #     echo "Changed services: ${{ steps.set_services.outputs.services }}"
+      #     echo "Activity-Tracking Files: ${{ steps.filter.outputs.activity_tracking_files }}"
+      #     echo "Frontend Files: ${{ steps.filter.outputs.frontend_files }}"
 
   lint:
     name: Run Linting
@@ -171,9 +174,7 @@ jobs:
 
       - name: Set Service Variables
         run: |
-          set -e
-          SERVICE=$(echo "${{ matrix.service }}" | tr '[:upper:]' '[:lower:]')
-          case "$SERVICE" in
+          case "${{ matrix.service }}" in
             frontend)
               echo "language=node" >> $GITHUB_ENV
               echo "working_directory=frontend" >> $GITHUB_ENV
@@ -284,44 +285,63 @@ jobs:
           esac
 
       # Set up language environments
-      - name: Set up Node.js
-        if: ${{ env.language == 'node' }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: ${{ env.working_directory }}/package-lock.json
+      # - name: Set up Node.js
+      #   if: ${{ env.language == 'node' }}
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: '18'
+      #     cache: 'npm'
+      #     cache-dependency-path: ${{ env.working_directory }}/package-lock.json
 
-      - name: Set up Python
-        if: ${{ env.language == 'python' }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-          cache: 'pip'
-          cache-dependency-path: ${{ env.working_directory }}/requirements.txt
+      # - name: Set up Python
+      #   if: ${{ env.language == 'python' }}
+      #   uses: actions/setup-python@v4
+      #   with:
+      #     python-version: '3.x'
+      #     cache: 'pip'
+      #     cache-dependency-path: ${{ env.working_directory }}/requirements.txt
 
-      - name: Set up Java
-        if: ${{ env.language == 'java' }}
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '11'
+      # - name: Set up Java
+      #   if: ${{ env.language == 'java' }}
+      #   uses: actions/setup-java@v3
+      #   with:
+      #     distribution: 'temurin'
+      #     java-version: '11'
       
-      - name: Cache Gradle Dependencies
-        if: ${{ env.language == 'java' }}
-        uses: actions/cache@v3
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles(format('{0}/**/*.gradle*', env.working_directory)) }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+      # - name: Cache Gradle Dependencies
+      #   if: ${{ env.language == 'java' }}
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: ~/.gradle/caches
+      #     key: ${{ runner.os }}-gradle-${{ hashFiles(format('{0}/**/*.gradle*', env.working_directory)) }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-gradle-
 
-      - name: Run Unit Tests
-        uses: ./.github/actions/unit-tests
-        with:
-          service: ${{ matrix.service }}
-          language: ${{ env.language }}
-          working_directory: ${{ env.working_directory }}
+      # - name: Run Unit Tests
+      #   uses: ./.github/actions/unit-tests
+      #   with:
+      #     service: ${{ matrix.service }}
+      #     language: ${{ env.language }}
+      #     working_directory: ${{ env.working_directory }}
+  
+  # deploy:
+  #   name: Deploy Changed Services
+  #   needs: determine_changes
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       service: ${{ fromJson(needs.determine_changes.outputs.files) }}
+  #     fail-fast: false
+
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
+
+  #     - name: Deploy Service
+  #       env:
+  #         FILE: ${{ matrix.service }}
+  #       run: |
+  #         echo "Deploying service for changed file: $FILE"
 
   build_and_deploy:
     name: Build and Deploy to Docker Hub
@@ -363,21 +383,16 @@ jobs:
         env:
           SERVICES: ${{ needs.determine_changes.outputs.services }}
         run: |
-          set -e
           SERVICES=$(echo $SERVICES | jq -r '.[]')
           for service in $SERVICES; do
             echo "Building and pushing Docker image for $service"
-
-            # Build the Docker image
-            docker build -t $DOCKER_USERNAME/$service:latest -f ./$service/Dockerfile ./$service || { echo "Docker build failed for $service"; exit 1; }
-
-            # Push the Docker image
-            docker push $DOCKER_USERNAME/$service:latest || { echo "Docker push failed for $service"; exit 1; }
+            docker build -t $DOCKER_USERNAME/$service:latest -f ./$service/Dockerfile ./$service || exit 1
+            docker push $DOCKER_USERNAME/$service:latest || exit 1
           done
 
-      # Optional: Scan Docker images for vulnerabilities
-      # - name: Scan Docker Image for Vulnerabilities
-      #   run: |
-      #     for service in $SERVICES; do
-      #       docker scan $DOCKER_USERNAME/$service:latest || true
-      #     done
+  #     # Optional: Scan Docker images for vulnerabilities
+  #     # - name: Scan Docker Image for Vulnerabilities
+  #     #   run: |
+  #     #     for service in $SERVICES; do
+  #     #       docker scan $DOCKER_USERNAME/$service:latest || true
+  #     #     done
