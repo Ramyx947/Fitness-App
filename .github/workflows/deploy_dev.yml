@@ -72,20 +72,13 @@ jobs:
           if echo "$FILES" | grep -q '^recipes/'; then
             SERVICES=$(echo "$SERVICES" | jq '. + ["recipes"]')
           fi
-      
-          # If SERVICES is still empty, set it to a default empty array
-          if [ "$SERVICES" = "[]" ]; then
-            SERVICES="[]"
-          fi
-      
-          # Export as environment variable in JSON format
-          echo "services=$(echo "$SERVICES" | jq -c .)" >> $GITHUB_ENV
-      
-          # Set as output
-          echo "services<<EOF" >> $GITHUB_OUTPUT
-          echo "$(echo "$SERVICES" | jq -c .)" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-        
+          
+          # Ensure SERVICES is always a valid JSON array
+          echo "services=$SERVICES" >> $GITHUB_ENV
+          echo "::set-output name=services::$SERVICES"
+      - name: Debug Changed Services Output
+        run: |
+          echo "Services from determine_changes: ${{ needs.determine_changes.outputs.services }}"    
 
   lint:
     name: Run Linting
@@ -94,7 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: ${{ fromJson(needs.determine_changes.outputs.services || '[]') }}
+        service: ${{ fromJson(needs.determine_changes.outputs.services || '["default_service"]') }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
