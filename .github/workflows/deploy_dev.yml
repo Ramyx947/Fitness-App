@@ -103,6 +103,7 @@ jobs:
         run: |
           FILES=$(git diff --name-only origin/develop...HEAD)
           SERVICES="[]"
+          
           if echo "$FILES" | grep -q '^frontend/'; then
             SERVICES=$(echo "$SERVICES" | jq '. + ["frontend"]')
           fi
@@ -118,7 +119,11 @@ jobs:
           if echo "$FILES" | grep -q '^recipes/'; then
             SERVICES=$(echo "$SERVICES" | jq '. + ["recipes"]')
           fi
+
+          # Set the JSON array in GITHUB_ENV
           echo "services=$SERVICES" >> $GITHUB_ENV
+          
+          # Set the JSON array as output for the job
           echo "services<<EOF" >> $GITHUB_OUTPUT
           echo "$SERVICES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
