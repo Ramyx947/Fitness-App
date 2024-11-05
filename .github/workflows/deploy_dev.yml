@@ -98,40 +98,38 @@ jobs:
       #   shell: bash
 
 
-      - name: Determine Changed Services
-        id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          list-files: 'json'
-          filters: |
-            frontend:
-              paths:
-                - 'frontend/**'
-                - 'frontend/.*'
-            activity-tracking:
-              paths:
-                - 'activity-tracking/**'
-                - 'activity-tracking/.*'
-            authservice:
-              paths:
-                - 'authservice/**'
-                - 'authservice/.*'
-            analytics:
-              paths:
-                - 'analytics/**'
-                - 'analytics/.*'
-            recipes:
-              paths:
-                - 'recipes/**'
-                - 'recipes/.*'
-          initial-fetch-depth: 100
-      - name: Print Paths Filter Outputs
+      - name: Determine Changed Directories
+        id: determine_changes
         run: |
-          echo "Frontend files changed: ${{ steps.filter.outputs.frontend_files }}"
-          echo "Activity-tracking files changed: ${{ steps.filter.outputs.activity-tracking_files }}"
-          echo "Authservice files changed: ${{ steps.filter.outputs.authservice_files }}"
-          echo "Analytics files changed: ${{ steps.filter.outputs.analytics_files }}"
-          echo "Recipes files changed: ${{ steps.filter.outputs.recipes_files }}"
+          FILES=$(git diff --name-only origin/develop...HEAD)
+          SERVICES="[]"
+          if echo "$FILES" | grep -q '^frontend/'; then
+            SERVICES=$(echo "$SERVICES" | jq '. + ["frontend"]')
+          fi
+          if echo "$FILES" | grep -q '^activity-tracking/'; then
+            SERVICES=$(echo "$SERVICES" | jq '. + ["activity-tracking"]')
+          fi
+          if echo "$FILES" | grep -q '^authservice/'; then
+            SERVICES=$(echo "$SERVICES" | jq '. + ["authservice"]')
+          fi
+          if echo "$FILES" | grep -q '^analytics/'; then
+            SERVICES=$(echo "$SERVICES" | jq '. + ["analytics"]')
+          fi
+          if echo "$FILES" | grep -q '^recipes/'; then
+            SERVICES=$(echo "$SERVICES" | jq '. + ["recipes"]')
+          fi
+          echo "services=$SERVICES" >> $GITHUB_ENV
+          echo "services<<EOF" >> $GITHUB_OUTPUT
+          echo "$SERVICES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      # - name: Print Paths Filter Outputs
+      #   run: |
+      #     echo "Frontend files changed: ${{ steps.filter.outputs.frontend_files }}"
+      #     echo "Activity-tracking files changed: ${{ steps.filter.outputs.activity-tracking_files }}"
+      #     echo "Authservice files changed: ${{ steps.filter.outputs.authservice_files }}"
+      #     echo "Analytics files changed: ${{ steps.filter.outputs.analytics_files }}"
+      #     echo "Recipes files changed: ${{ steps.filter.outputs.recipes_files }}"
       # - name: Set Services Output
       #   id: set_services
       #   run: |
