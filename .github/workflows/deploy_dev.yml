@@ -102,26 +102,36 @@ jobs:
         id: filter
         uses: dorny/paths-filter@v3
         with:
-          base: develop
           list-files: 'json'
           filters: |
             frontend:
               paths:
                 - 'frontend/**'
+                - 'frontend/.*'
             activity-tracking:
               paths:
                 - 'activity-tracking/**'
+                - 'activity-tracking/.*'
             authservice:
               paths:
                 - 'authservice/**'
+                - 'authservice/.*'
             analytics:
               paths:
                 - 'analytics/**'
+                - 'analytics/.*'
             recipes:
               paths:
                 - 'recipes/**'
+                - 'recipes/.*'
           initial-fetch-depth: 100
-
+      - name: Print Paths Filter Outputs
+        run: |
+          echo "Frontend files changed: ${{ steps.filter.outputs.frontend_files }}"
+          echo "Activity-tracking files changed: ${{ steps.filter.outputs.activity-tracking_files }}"
+          echo "Authservice files changed: ${{ steps.filter.outputs.authservice_files }}"
+          echo "Analytics files changed: ${{ steps.filter.outputs.analytics_files }}"
+          echo "Recipes files changed: ${{ steps.filter.outputs.recipes_files }}"
       # - name: Set Services Output
       #   id: set_services
       #   run: |
