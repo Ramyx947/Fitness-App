@@ -16,21 +16,6 @@ on:
         description: 'Branch to deploy'
         required: false
         default: 'develop'
-      services:
-        description: 'Comma-separated list of services to build and deploy'
-        required: false
-      run_lint:
-        description: 'Run Lint Job (true/false)'
-        required: false
-        default: 'true'
-      run_unit_tests:
-        description: 'Run Unit Tests Job (true/false)'
-        required: false
-        default: 'true'
-      run_build_and_deploy:
-        description: 'Run Build and Deploy Job (true/false)'
-        required: false
-        default: 'true'
 
 jobs:
   lint:
@@ -38,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: ["frontend", "activity-tracking", "authservice", "analytics", "recipes"]
+        service: ["frontend", "activity-tracking", "analytics", "recipes"]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -62,62 +47,50 @@ jobs:
               echo "language=python" >> $GITHUB_ENV
               echo "working_directory=recipes" >> $GITHUB_ENV
               ;;
-            authservice)
-              echo "language=java" >> $GITHUB_ENV
-              echo "working_directory=authservice" >> $GITHUB_ENV
-              ;;
-            *)
-              echo "Unsupported service: $SERVICE"
-              exit 1
-              ;;
           esac
-
-      # Set up language environments
-      - name: Set up Node.js
-        if: ${{ env.language == 'node' }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: ${{ env.working_directory }}/package-lock.json
 
       - name: Set up Python
         if: ${{ env.language == 'python' }}
         uses: actions/setup-python@v4
         with:
           python-version: '3.8'
-          cache: 'pip'
-          cache-dependency-path: ${{ env.working_directory }}/requirements.txt
 
-      - name: Set up Java
-        if: ${{ env.language == 'java' }}
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '11'
-      
-      - name: Cache Gradle Dependencies
-        if: ${{ env.language == 'java' }}
+      - name: Cache Dependencies
+        if: ${{ env.language == 'node' }}
         uses: actions/cache@v3
         with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles(format('{0}/**/*.gradle*', env.working_directory)) }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Run Lint
-        uses: ./.github/actions/lint
+          path: ${{ env.working_directory }}/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles(format('{0}/package-lock.json', env.working_directory)) }}
+      
+      - name: Cache Poetry
+        if: ${{ env.language == 'python' }}
+        uses: actions/cache@v3
         with:
-          service: ${{ matrix.service }}
-          language: ${{ env.language }}
-          working_directory: ${{ env.working_directory }}
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
+      
+      - name: Set up Language Environment and Run Lint
+        run: |
+          cd ${{ github.workspace }}/${{ env.working_directory }}
+          case "${{ env.language }}" in
+            node)
+              echo "Setting up Node.js environment..."
+              npm install
+              npm run lint
+              ;;
+            python)
+              echo "Setting up Python environment..."
+              poetry install
+              flake8 .
+              ;;
+          esac
 
   unit_tests:
     name: Run Unit Tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: ["frontend", "activity-tracking", "authservice", "analytics", "recipes"]
+        service: ["frontend", "activity-tracking", "analytics", "recipes"]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -141,55 +114,44 @@ jobs:
               echo "language=python" >> $GITHUB_ENV
               echo "working_directory=recipes" >> $GITHUB_ENV
               ;;
-            authservice)
-              echo "language=java" >> $GITHUB_ENV
-              echo "working_directory=authservice" >> $GITHUB_ENV
-              ;;
-            *)
-              echo "Unsupported service: $SERVICE"
-              exit 1
-              ;;
           esac
 
-      # Set up language environments
-      - name: Set up Node.js
-        if: ${{ env.language == 'node' }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: ${{ env.working_directory }}/package-lock.json
-
+          
       - name: Set up Python
         if: ${{ env.language == 'python' }}
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
-          cache: 'pip'
-          cache-dependency-path: ${{ env.working_directory }}/requirements.txt
+          python-version: '3.8'
 
-      - name: Set up Java
-        if: ${{ env.language == 'java' }}
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '11'
-      
-      - name: Cache Gradle Dependencies
-        if: ${{ env.language == 'java' }}
+      - name: Cache Dependencies
+        if: ${{ env.language == 'node' }}
         uses: actions/cache@v3
         with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles(format('{0}/**/*.gradle*', env.working_directory)) }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Run Unit Tests
-        uses: ./.github/actions/unit-tests
+          path: ${{ env.working_directory }}/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles(format('{0}/package-lock.json', env.working_directory)) }}
+      
+      - name: Cache Poetry
+        if: ${{ env.language == 'python' }}
+        uses: actions/cache@v3
         with:
-          service: ${{ matrix.service }}
-          language: ${{ env.language }}
-          working_directory: ${{ env.working_directory }}
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
+      
+      - name: Set up Language Environment and Run Tests
+        run: |
+          cd ${{ github.workspace }}/${{ env.working_directory }}
+          case "${{ env.language }}" in
+            node)
+              echo "Setting up Node.js environment and running tests..."
+              npm install
+              npm test
+              ;;
+            python)
+              echo "Setting up Python environment and running tests..."
+              poetry install
+              poetry run pytest
+              ;;
+          esac
 
   build_and_deploy:
     name: Build and Deploy to Docker Hub
@@ -231,6 +193,6 @@ jobs:
           SERVICES=("frontend" "activity-tracking" "authservice" "analytics" "recipes")
           for service in "${SERVICES[@]}"; do
             echo "Building and pushing Docker image for $service"
-            docker build -t $DOCKER_USERNAME/$service:latest -f ./$service/Dockerfile ./$service || exit 1
+            docker build --cache-from $DOCKER_USERNAME/$service:latest -t $DOCKER_USERNAME/$service:latest -f ./$service/Dockerfile ./$service || exit 1
             docker push $DOCKER_USERNAME/$service:latest || exit 1
           done
