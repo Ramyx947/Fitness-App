@@ -86,6 +86,7 @@ jobs:
               ;;
             python)
               echo "Setting up Python environment..."
+              poetry lock --no-update
               poetry install
               flake8 .
               ;;
@@ -159,6 +160,7 @@ jobs:
               ;;
             python)
               echo "Setting up Python environment and running tests..."
+              poetry lock --no-update
               poetry install
               poetry run pytest
               ;;
