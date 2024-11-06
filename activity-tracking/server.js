@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const config = require('./config.json');
 const { LogCategory } = require("./logging");
 const log = new LogCategory("activity-tracking-server.js");
 

@@ -87,7 +87,7 @@ router.put('/update/:id', async (req, res) => {
       if (!username || !exerciseType || !description || !duration || !date) {
         log.debug("[PUT] 400 Error updating exercise - missing required field");
         return res.status(400).json({ error: 'All fields are required' });
-
+      }
       const exercise = await Exercise.findById(req.params.id);
       if (!exercise) {
         log.debug("[PUT] 400 Error updating exercise - exercise not found " + req.params.id);
