@@ -63,7 +63,7 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles(format('{0}/package-lock.json', env.working_directory)) }}
       
       - name: Cache Poetry
-        if: ${{ env.language == 'python' }}
+        if: ${{ env.language == 'python' && hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
         uses: actions/cache@v3
         with:
           path: ~/.cache/pypoetry
@@ -131,7 +131,7 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles(format('{0}/package-lock.json', env.working_directory)) }}
       
       - name: Cache Poetry
-        if: ${{ env.language == 'python' }}
+        if: ${{ env.language == 'python' && hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
         uses: actions/cache@v3
         with:
           path: ~/.cache/pypoetry
