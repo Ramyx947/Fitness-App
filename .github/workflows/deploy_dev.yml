@@ -55,6 +55,12 @@ jobs:
         with:
           python-version: '3.8'
 
+      - name: Install Poetry (if using Python)
+        if: ${{ env.language == 'python' }}
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
       - name: Cache Dependencies
         if: ${{ env.language == 'node' }}
         uses: actions/cache@v3
@@ -62,6 +68,12 @@ jobs:
           path: ${{ env.working_directory }}/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles(format('{0}/package-lock.json', env.working_directory)) }}
       
+      - name: Set up Python
+        if: ${{ env.language == 'python' }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
       - name: Cache Poetry
         if: ${{ env.language == 'python' && hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
         uses: actions/cache@v3
