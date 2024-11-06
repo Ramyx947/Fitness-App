@@ -88,7 +88,7 @@ jobs:
               echo "Setting up Python environment..."
               poetry lock --no-update
               poetry install
-              flake8 .
+              poetry run flake8 .
               ;;
           esac
 
