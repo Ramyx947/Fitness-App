@@ -1,10 +1,3 @@
-# ––––––––––––––––––––––––––––––––
-# This workflow builds and pushes Docker images to Docker Hub.
-# It runs automatically when there is a push to the develop branch.
-# Docker images are built and pushed only for services that have changes in their directories.
-# It also checks commit messages for the service's name to determine if the service needs rebuilding.
-# Ensure that DOCKER_USERNAME and DOCKER_PASSWORD are added to GitHub secrets for authentication.
-# ––––––––––––––––––––––––––––––––
 name: Build and Deploy to Docker Hub
 
 on:
@@ -40,58 +33,12 @@ on:
         default: 'true'
 
 jobs:
-  determine_changes:
-    name: Determine Changed Services
-    runs-on: ubuntu-latest
-    outputs:
-      services: ${{ steps.set_services.outputs.services }}
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Determine Changed Directories
-        id: determine_changes
-        run: |
-          FILES=$(git diff --name-only origin/develop...HEAD)
-          SERVICES="[]"
-      
-          if echo "$FILES" | grep -q '^frontend/'; then
-            SERVICES=$(echo "$SERVICES" | jq '. + ["frontend"]')
-          fi
-          if echo "$FILES" | grep -q '^activity-tracking/'; then
-            SERVICES=$(echo "$SERVICES" | jq '. + ["activity-tracking"]')
-          fi
-          if echo "$FILES" | grep -q '^authservice/'; then
-            SERVICES=$(echo "$SERVICES" | jq '. + ["authservice"]')
-          fi
-          if echo "$FILES" | grep -q '^analytics/'; then
-            SERVICES=$(echo "$SERVICES" | jq '. + ["analytics"]')
-          fi
-          if echo "$FILES" | grep -q '^recipes/'; then
-            SERVICES=$(echo "$SERVICES" | jq '. + ["recipes"]')
-          fi
-      
-          # Ensure SERVICES is a properly formatted JSON array and export it
-          SERVICES=$(echo "$SERVICES" | jq -c .)
-          
-          # Use environment files instead of set-output
-          echo "services=$SERVICES" >> $GITHUB_ENV
-          echo "services=$SERVICES" >> $GITHUB_OUTPUT
-          
-      - name: Debug Changed Services Output
-        run: |
-          echo "Services from determine_changes: ${{ needs.determine_changes.outputs.services }}"    
-
   lint:
     name: Run Linting
-    needs: determine_changes
-    if: ${{ needs.determine_changes.outputs.services != '[]' && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_lint == 'true') }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: ${{ fromJson(needs.determine_changes.outputs.services || '["default_service"]') }}
+        service: ["frontend", "activity-tracking", "authservice", "analytics", "recipes"]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -124,9 +71,7 @@ jobs:
               exit 1
               ;;
           esac
-      - name: Debug Changed Services Output
-        run: |
-          echo "Services: ${{ needs.determine_changes.outputs.services }}"
+
       # Set up language environments
       - name: Set up Node.js
         if: ${{ env.language == 'node' }}
@@ -169,21 +114,17 @@ jobs:
 
   unit_tests:
     name: Run Unit Tests
-    needs: determine_changes
-    if: ${{ needs.determine_changes.outputs.services != '[]' && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_unit_tests == 'true') }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: ${{ fromJson(needs.determine_changes.outputs.services || '[]') }}
+        service: ["frontend", "activity-tracking", "authservice", "analytics", "recipes"]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Set Service Variables
         run: |
-          set -e
-          SERVICE=$(echo "${{ matrix.service }}" | tr '[:upper:]' '[:lower:]')
-          case "$SERVICE" in
+          case "${{ matrix.service }}" in
             frontend)
               echo "language=node" >> $GITHUB_ENV
               echo "working_directory=frontend" >> $GITHUB_ENV
@@ -210,7 +151,7 @@ jobs:
               ;;
           esac
 
-      #Set up language environments
+      # Set up language environments
       - name: Set up Node.js
         if: ${{ env.language == 'node' }}
         uses: actions/setup-node@v3
@@ -249,14 +190,12 @@ jobs:
           service: ${{ matrix.service }}
           language: ${{ env.language }}
           working_directory: ${{ env.working_directory }}
-  
 
   build_and_deploy:
     name: Build and Deploy to Docker Hub
     needs:
       - lint
       - unit_tests
-    if: ${{ needs.determine_changes.outputs.services != '[]' && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_build_and_deploy == 'true') }}
     runs-on: ubuntu-latest
     env:
       NODE_ENV: ${{ secrets.NODE_ENV_DEV }}
@@ -287,20 +226,11 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and Push Docker Images for Changed Services
-        env:
-          SERVICES: ${{ needs.determine_changes.outputs.services }}
+      - name: Build and Push Docker Images for All Services
         run: |
-          SERVICES=$(echo $SERVICES | jq -r '.[]')
-          for service in $SERVICES; do
+          SERVICES=("frontend" "activity-tracking" "authservice" "analytics" "recipes")
+          for service in "${SERVICES[@]}"; do
             echo "Building and pushing Docker image for $service"
             docker build -t $DOCKER_USERNAME/$service:latest -f ./$service/Dockerfile ./$service || exit 1
             docker push $DOCKER_USERNAME/$service:latest || exit 1
           done
-
-  #     # Optional: Scan Docker images for vulnerabilities
-  #     # - name: Scan Docker Image for Vulnerabilities
-  #     #   run: |
-  #     #     for service in $SERVICES; do
-  #     #       docker scan $DOCKER_USERNAME/$service:latest || true
-  #     #     done
