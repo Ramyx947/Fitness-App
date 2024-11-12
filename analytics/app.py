@@ -30,7 +30,6 @@ type_defs = load_schema_from_path("schema.graphql")
 # set up the graphql server
 @app.route('/api/graphql', methods=['POST'])
 def graphql_server():
-    print("Received a POST request ...")
     data = request.get_json()
     success, result = graphql_sync(
         schema,
@@ -49,7 +48,6 @@ with open(GRAPHQL_PLAYGROUND_HTML_FP, 'r', encoding='utf-8') as file:
 # graphql playground for health check
 @app.route('/api/graphql', methods=['GET'])
 def graphql_playground():
-    print("Received a GET request")
     return html_content, 200
 
 # rest endpoint serving as a health check and welcome page
@@ -63,9 +61,7 @@ def index():
 @query.field("stats")
 def resolve_stats(_, info):
     try:
-        print("Resolving the list stats info")
         loadedStats = stats()
-        print(loadedStats)
         payload = {
             "success": True,
             "results": loadedStats
@@ -81,9 +77,7 @@ def resolve_stats(_, info):
 @query.field("filteredStats")
 def resolve_filteredStats(*_, name=None):
     try:
-        print("Resolving the list stats info")
         loadedStats = user_stats(name)
-        print(loadedStats)
         payload = {
             "success": True,
             "results": loadedStats
@@ -99,9 +93,7 @@ def resolve_filteredStats(*_, name=None):
 @query.field("weekly")
 def resolve_weekly(_, info, user, start, end):
     try:
-        print("Resolving the list weekly stats info")
         weeklyStats = weekly_user_stats(user, start, end)
-        print(weeklyStats)
         payload = {
             "success": True,
             "results": weeklyStats
