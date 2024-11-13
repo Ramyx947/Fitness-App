@@ -3,11 +3,13 @@ import pytest
 import mongomock
 from unittest.mock import patch
 
+
 @pytest.fixture(scope='session')
 def mock_mongo():
     # Create a single mongomock client instance
     mock_client = mongomock.MongoClient()
     return mock_client
+
 
 @pytest.fixture
 def client(mock_mongo):

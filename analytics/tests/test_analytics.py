@@ -7,6 +7,7 @@ from datetime import datetime
 # Add the parent directory to sys.path, to get the correct app path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+
 def test_graphql_stats_query(client, mock_mongo):
     # Insert mock data into the shared mock MongoDB
     stats_collection = mock_mongo['test'].exercises
@@ -48,10 +49,11 @@ def test_graphql_stats_query(client, mock_mongo):
     assert stats['exercises'][1]['exerciseType'] == "Swimming"
     assert stats['exercises'][1]['totalDuration'] == 90
 
+
 def test_graphql_filtered_stats_query(client, mock_mongo):
     """
     Tests the GraphQL 'filteredStats' query for filtering statistics by username.
-    
+
     Args:
         client: Pytest fixture for the test client.
         mock_mongo: Pytest fixture for the mocked MongoDB client.
@@ -112,10 +114,11 @@ def test_graphql_filtered_stats_query(client, mock_mongo):
     assert stats['exercises'][1]['exerciseType'] == "Yoga"
     assert stats['exercises'][1]['totalDuration'] == 60
 
+
 def test_graphql_weekly_query(client, mock_mongo):
     """
     Tests the GraphQL 'weekly' query for fetching weekly statistics.
-    
+
     Args:
         client: Pytest fixture for the test client.
         mock_mongo: Pytest fixture for the mocked MongoDB client.
@@ -181,10 +184,11 @@ def test_graphql_weekly_query(client, mock_mongo):
     assert exercise_map["Swimming"] == 80
     assert exercise_map["Pilates"] == 70
 
+
 def test_mongo_connection(mock_mongo):
     """
     Tests the MongoDB connection by inserting and retrieving mock data.
-    
+
     Args:
         mock_mongo: Pytest fixture for the mocked MongoDB client.
     """
@@ -216,11 +220,11 @@ def test_mongo_connection(mock_mongo):
     assert inserted_stat2['exerciseType'] == "Boxing"
     assert inserted_stat2['duration'] == 150
 
+
 def test_schema_loading():
     """
     Tests whether the GraphQL schema loads correctly.
     """
-    from ariadne import make_executable_schema
 
     # Define the correct path to the schema
     current_dir = os.path.dirname(os.path.abspath(__file__))

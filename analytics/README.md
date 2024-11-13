@@ -45,3 +45,6 @@ If VS does not find poetry's virtual environment, the packages in the Python scr
 
 #### Running specific test file with verbose output
 - `poetry run pytest tests/test_analytics.py -v`
+
+### Running lint with Flake8
+- `poetry run flake8`
