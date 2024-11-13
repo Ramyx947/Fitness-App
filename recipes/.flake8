@@ -1,0 +1,19 @@
+[flake8]
+# Exclude some directories
+exclude = .git,__pycache__,build,dist,.venv,.idea,.vscode
+
+# Set the maximum allowed McCabe complexity
+max-complexity = 10
+
+# Set the maximum line length to match PEP8 (79) or a custom value (e.g., 88 for Black formatter)
+max-line-length = 88
+
+# Ignore specific rules
+# For example, ignore:
+#   E501: Line too long
+#   W503: Line break occurred before a binary operator
+ignore = E501, W503
+
+# Enable specific plugins if you have any installed
+# For example, flake8-bugbear
+# select = B
