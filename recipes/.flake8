@@ -13,7 +13,3 @@ max-line-length = 88
 #   E501: Line too long
 #   W503: Line break occurred before a binary operator
 ignore = E501, W503
-
-# Enable specific plugins if you have any installed
-# For example, flake8-bugbear
-# select = B
