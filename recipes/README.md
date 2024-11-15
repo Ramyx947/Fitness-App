@@ -40,8 +40,11 @@ If VS does not find poetry's virtual environment, the packages in the Python scr
 7. `poetry shell` to activate the virtual environment where poetry has installed the dependencies
 
 ### Running unit tests
-# running the whole test suite
+#### Running the whole test suite
 - `poetry run pytest`
 
-# running specific test file
+#### Running specific test file with verbose output
 - `poetry run pytest tests/test_recipes.py -v`
+
+### Running lint with Flake8
+- `poetry run flake8`
