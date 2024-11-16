@@ -6,11 +6,13 @@ import pytest
 from ariadne import load_schema_from_path
 from app import app
 
+
 @pytest.fixture
 def client():
     # Use mongomock as the database client for tests
     with app.test_client() as client:
         yield client
+
 
 @pytest.fixture
 def mock_mongo(monkeypatch):
@@ -19,9 +21,10 @@ def mock_mongo(monkeypatch):
     monkeypatch.setattr("app.db", mock_client['recipes'])
     return mock_client
 
+
 def test_graphql_recipes_query(client, mock_mongo):
     """Test the GraphQL recipes query."""
-    
+
     # Define the GraphQL query
     query = """
     query {
@@ -69,6 +72,7 @@ def test_graphql_recipes_query(client, mock_mongo):
     assert recipe['calories'] == 500
     assert recipe['ingredients'][0]['itemName'] == "Noodles"
 
+
 def test_mongo_connection(mock_mongo):
     db = mock_mongo['test_db']
     recipes_collection = db['recipes']
@@ -82,6 +86,7 @@ def test_mongo_connection(mock_mongo):
     assert inserted_recipe is not None, "Mock data was not inserted correctly."
     assert inserted_recipe['calories'] == 400
 
+
 def test_schema_loading():
     # Define the correct path to the schema
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -89,7 +94,7 @@ def test_schema_loading():
 
     # Load the schema from the correct directory
     type_defs = load_schema_from_path(schema_directory)
-    
+
     # Debugging: Print the type definitions to verify they're loaded
     print("Loaded Type Definitions:", type_defs)
 
