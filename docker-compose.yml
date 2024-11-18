@@ -43,6 +43,7 @@ services:
     environment:
       - NODE_ENV=development
       - MONGO_URI=mongodb://root:cfgmla23@mongodb:27017
+      - MONGO_DB=test
     ports:
       - "5051:5051"
     depends_on:
