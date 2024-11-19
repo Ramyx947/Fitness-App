@@ -1,0 +1,30 @@
+schema {
+    query: Query
+}
+
+type RecipeItem {
+    itemName: String
+    amount: Int
+}
+
+type NutrientToAmount {
+    nutrient: String
+    amount: Int
+}
+
+type Recipe {
+    recipeName: String
+    ingredients: [RecipeItem]
+    calories: Int
+    nutrients: [NutrientToAmount]
+}
+
+type RecipesResult {
+    success: Boolean!
+    errors: [String]
+    results: [Recipe]
+}
+
+type Query {
+    recipes: RecipesResult
+}

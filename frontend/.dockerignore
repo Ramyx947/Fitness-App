@@ -1,0 +1,18 @@
+# Node modules (installed in Docker)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Local Environment Files
+.env
+.env.local
+
+# Build Artifacts and Cache
+/build
+.cache/
+coverage/
+
+# Tests and Documentation
+/tests/
+*.test.js
+docs/
