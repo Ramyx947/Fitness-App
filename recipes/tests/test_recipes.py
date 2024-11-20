@@ -96,7 +96,7 @@ def test_graphql_add_recipe_mutation(client, mock_mongo):
     """
 
     # Execute the GraphQL mutation
-    response = client.post('/api/graphql', json={'query': mutation})
+    response = client.post('/api/graphql', json={'mutation': mutation})
     assert response.status_code == 200
 
     # Check the response data
