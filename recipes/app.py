@@ -1,5 +1,5 @@
 import os
-from ariadne import QueryType, graphql_sync, load_schema_from_path, make_executable_schema
+from ariadne import MutationType, QueryType, graphql_sync, load_schema_from_path, make_executable_schema
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -21,6 +21,7 @@ db = client[mongo_db]
 
 # Initialize the query type
 query = QueryType()
+mutation = MutationType()
 
 
 # Define GraphQL resolver before making the schema
@@ -53,6 +54,32 @@ def resolve_recipes(_, info):
         }
     return payload
 
+@mutation.field("addRecipe")
+def add_recipe(_, info, recipe):
+    try:
+        print("Add recipe mutation called")
+        # Insert the recipe into the database
+        db.recipes.insert_one(recipe)
+
+        # Fetch the recipe from the database
+        dbRecipe = db.recipes.find_one({"recipeName": recipe["recipeName"]})
+        if dbRecipe is None:
+            raise Exception("Failed to add the recipe")
+
+        payload = {
+            "success": True,
+            "message": "Recipe added successfully",
+            "recipe": dbRecipe
+        }
+    except Exception as error:
+        print(f"Error: {error}")
+        payload = {
+            "success": False,
+            "message": "Failed to add the recipe"
+        }
+    
+    print(payload)
+    return payload
 
 # Set the path to the schema file and load it
 schema_directory = os.path.dirname(os.path.abspath(__file__))
@@ -60,7 +87,7 @@ schema_path = os.path.join(schema_directory, "schema.graphql")
 type_defs = load_schema_from_path(schema_path)
 print("Type Definitions Loaded:", type_defs)
 
-schema = make_executable_schema(type_defs, query)
+schema = make_executable_schema(type_defs, query, mutation)
 
 
 # Set up the GraphQL server
