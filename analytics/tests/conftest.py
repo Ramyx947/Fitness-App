@@ -1,7 +1,9 @@
 # conftest.py
-import pytest
-import mongomock
 from unittest.mock import patch
+
+import mongomock
+
+import pytest
 
 
 @pytest.fixture(scope='session')

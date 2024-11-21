@@ -1,8 +1,9 @@
-import os
 import json
-from ariadne import load_schema_from_path
+import os
 import sys
 from datetime import datetime
+
+from ariadne import load_schema_from_path
 
 # Add the parent directory to sys.path, to get the correct app path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

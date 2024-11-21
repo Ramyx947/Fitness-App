@@ -1,12 +1,20 @@
-import traceback
-from dotenv import load_dotenv
-from flask import Flask, jsonify, request
-from pymongo import MongoClient
-from flask_cors import CORS
-from bson import json_util
 import os
+import traceback
 from datetime import datetime
-from ariadne import load_schema_from_path, make_executable_schema, graphql_sync, QueryType
+
+# 3rd party libs:
+from ariadne import (QueryType, graphql_sync, load_schema_from_path,
+                     make_executable_schema)
+
+from bson import json_util
+
+from dotenv import load_dotenv
+
+from flask import Flask, jsonify, request
+
+from flask_cors import CORS
+
+from pymongo import MongoClient
 
 # set up flask app
 app = Flask(__name__)

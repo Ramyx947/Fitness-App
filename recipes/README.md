@@ -48,3 +48,24 @@ If VS does not find poetry's virtual environment, the packages in the Python scr
 
 ### Running lint with Flake8
 - `poetry run flake8`
+
+### Check Dependencies using Poetry specific tools:
+
+##### Export Poetry dependencies to a requirements.txt file
+1. Export Poetry dependencies to `requirements.txt`:
+- `poetry export -f requirements.txt --output requirements.txt --without-hashes`
+
+2. Run `pip-missing-reqs` to detect missing or unused dependencies:
+- `pip-missing-reqs .`
+
+##### Check for dependency issues directly within Poetry
+- `poetry check`
+
+##### Remove the temporary requirements.txt file afterward to avoid confusion:
+- `rm requirements.txt`
+
+### Maintaining consistent and clean import organization with `flake8-import-order`
+1. Detect import order issues with:
+- `poetry run flake8 .`
+2. Automate fix import order issues with isort (then re-run flake8 command)
+- `poetry run isort .`

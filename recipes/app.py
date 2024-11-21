@@ -1,5 +1,12 @@
 import os
-from ariadne import MutationType, QueryType, graphql_sync, load_schema_from_path, make_executable_schema
+
+from ariadne import (
+    MutationType,
+    QueryType,
+    graphql_sync,
+    load_schema_from_path,
+    make_executable_schema,
+)
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS

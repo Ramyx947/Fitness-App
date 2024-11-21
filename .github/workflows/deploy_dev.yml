@@ -61,6 +61,12 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+      - name: Regenerate poetry.lock (if missing or corrupted)
+        if: ${{ env.language == 'python' && !hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
+        run: |
+          cd ${{ github.workspace }}/${{ env.working_directory }}
+          poetry lock --no-update
+
       - name: Cache Dependencies
         if: ${{ env.language == 'node' }}
         uses: actions/cache@v3
@@ -134,6 +140,12 @@ jobs:
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Regenerate poetry.lock (if missing or corrupted)
+        if: ${{ env.language == 'python' && !hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
+        run: |
+          cd ${{ github.workspace }}/${{ env.working_directory }}
+          poetry lock --no-update
 
       - name: Cache Dependencies
         if: ${{ env.language == 'node' }}
