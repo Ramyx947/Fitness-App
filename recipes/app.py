@@ -1,4 +1,4 @@
-from os import getenv
+import os
 
 from dotenv import load_dotenv
 from ariadne import (
