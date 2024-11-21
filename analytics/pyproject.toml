@@ -33,6 +33,10 @@ typing-extensions = "^4.12.2"
 werkzeug = "^3.0.4"
 
 
+[tool.poetry.group.dev.dependencies]
+mongomock = "^4.2.0.post1"
+flake8 = "^7.1.1"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

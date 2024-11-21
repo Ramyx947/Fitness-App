@@ -1,34 +1,58 @@
 schema {
-    query: Query
+  query: Query
+  mutation: Mutation
 }
 
 type RecipeItem {
-    itemName: String
-    amount: Int
+  itemName: String
+  amount: Int
 }
 
 type NutrientToAmount {
-    nutrient: String
-    amount: Int
+  nutrient: String
+  amount: Int
 }
 
 type Recipe {
-    recipeName: String
-    ingredients: [RecipeItem]
-    calories: Int
-    nutrients: [NutrientToAmount]
-}
-
-type Recipes {
-    recipes: Recipe
+  recipeName: String
+  ingredients: [RecipeItem]
+  calories: Int
+  nutrients: [NutrientToAmount]
 }
 
 type RecipesResult {
-    success: Boolean!
-    errors: [String]
-    results: [Recipes]
+  success: Boolean!
+  errors: [String]
+  results: [Recipe]
 }
 
 type Query {
-    recipes: RecipesResult
+  recipes: RecipesResult
+}
+
+input NutrientToAmountInput {
+  nutrient: String
+  amount: Int
+}
+
+input RecipeItemInput {
+  itemName: String
+  amount: Int
+}
+
+input RecipeInput {
+  recipeName: String!
+  ingredients: [RecipeItemInput]!
+  calories: Int
+  nutrients: [NutrientToAmountInput]
+}
+
+type AddRecipeResult {
+  success: Boolean!
+  errors: [String]
+  recipe: Recipe
+}
+
+type Mutation {
+  addRecipe(recipe: RecipeInput!): AddRecipeResult
 }

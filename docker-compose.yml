@@ -5,7 +5,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     environment:
-      - REACT_APP_API_URL=${REACT_APP_API_URL}
+      REACT_APP_API_URL: ${REACT_APP_API_URL}
     ports:
       - "80:80"
     volumes:
@@ -21,6 +21,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV}
       MONGO_URI: ${MONGO_URI}
+      MONGO_DB: activity
     ports:
       - "5300:5300"
     depends_on:
@@ -48,8 +49,9 @@ services:
       context: ./recipes
       dockerfile: Dockerfile
     environment:
-      - NODE_ENV=${NODE_ENV}
-      - MONGO_URI=${MONGO_URI}
+      NODE_ENV: ${NODE_ENV}
+      MONGO_URI: ${MONGO_URI}
+      MONGO_DB: recipes
     ports:
       - "5051:5051"
     depends_on:
@@ -62,8 +64,8 @@ services:
       context: ./authservice
       dockerfile: Dockerfile
     environment:
-      - SPRING_DATA_MONGODB_DATABASE=${MONGO_DB_AUTH_DATABASE}
-      - SPRING_DATA_MONGODB_URI=${MONGO_URI}
+      SPRING_DATA_MONGODB_DATABASE: ${MONGO_DB_AUTH_DATABASE}
+      SPRING_DATA_MONGODB_URI: ${MONGO_URI}
     ports:
       - "8080:8080"
     depends_on:
