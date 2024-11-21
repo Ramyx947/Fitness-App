@@ -54,6 +54,7 @@ def resolve_recipes(_, info):
         }
     return payload
 
+
 @mutation.field("addRecipe")
 def add_recipe(_, info, recipe):
     try:
@@ -77,9 +78,10 @@ def add_recipe(_, info, recipe):
             "success": False,
             "message": "Failed to add the recipe"
         }
-    
+
     print(payload)
     return payload
+
 
 # Set the path to the schema file and load it
 schema_directory = os.path.dirname(os.path.abspath(__file__))

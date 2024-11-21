@@ -72,31 +72,36 @@ def test_graphql_recipes_query(client, mock_mongo):
     assert recipe['calories'] == 500
     assert recipe['ingredients'][0]['itemName'] == "Noodles"
 
+
 def test_graphql_add_recipe_mutation(client, mock_mongo):
     """Test the GraphQL addRecipe mutation."""
 
     # Define the GraphQL mutation
     mutation = """
     mutation {
-    addRecipe(recipe: {
-        recipeName: "Pizza"
-        ingredients: [{ itemName: "dough" amount: 100}, { itemName: "tomato" amount: 25}, { itemName: "cheese" amount: 500}]
+      addRecipe(recipe: {
+        recipeName: "Pizza",
+        ingredients: [
+          { itemName: "dough", amount: 100 },
+          { itemName: "tomato", amount: 25 },
+          { itemName: "cheese", amount: 500 }
+        ],
         calories: 1500
-    }){
+      }) {
         success
         recipe {
-            recipeName
-            ingredients {
-                itemName
-            }
-            calories
+          recipeName
+          ingredients {
+            itemName
+          }
+          calories
         }
-    }
+      }
     }
     """
 
     # Execute the GraphQL mutation
-    response = client.post('/api/graphql', json={'mutation': mutation})
+    response = client.post('/api/graphql', json={'query': mutation})
     assert response.status_code == 200
 
     # Check the response data
@@ -139,4 +144,3 @@ def test_schema_loading():
     # Check schema loaded as expected
     assert type_defs is not None, "Type definitions are not loaded."
     assert "schema {" in type_defs, "Schema definition is missing."
-
