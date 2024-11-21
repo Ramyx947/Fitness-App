@@ -3,8 +3,12 @@ import traceback
 from datetime import datetime
 
 # 3rd party libs:
-from ariadne import (QueryType, graphql_sync, load_schema_from_path,
-                     make_executable_schema)
+from ariadne import (
+    QueryType,
+    graphql_sync,
+    load_schema_from_path,
+    make_executable_schema,
+)
 
 from bson import json_util
 
