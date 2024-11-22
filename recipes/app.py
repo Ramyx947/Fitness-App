@@ -1,6 +1,5 @@
 import os
 
-from dotenv import load_dotenv
 from ariadne import (
     MutationType,
     QueryType,
@@ -8,6 +7,7 @@ from ariadne import (
     load_schema_from_path,
     make_executable_schema,
 )
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from pymongo import MongoClient

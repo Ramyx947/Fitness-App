@@ -8,7 +8,6 @@ package-mode = false
 
 [tool.poetry.dependencies]
 ariadne = "0.23.0"
-flake8-import-order = "^0.18.1"
 flask = "2.3.2"
 flask-cors = "^5.0.0"
 flask-pymongo = "2.3.0"
@@ -22,10 +21,8 @@ wheel = "^0.45.0"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.1.1"
-flake8-import-order = "^0.18.1"
 pytest = "^8.3.3"
 mongomock = "^4.2.0.post1"
-isort = "^5.13.2"
 
 [build-system]
 requires = ["poetry-core"]
@@ -33,14 +30,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.flake8]
 max-line-length = 79
-extend-ignore = "E203,W503"
-import-order-style = "google"  # Options: 'google', 'pep8', etc.
-application-import-names = ["app"] 
 
 [tool.isort]
 profile = "black"  # Use Black-compatible formatting
 line_length = 79
-combine_as_imports = true
-force_sort_within_sections = true  # Ensure consistent sorting within groups
-lines_between_sections = 1  # Add one blank line between groups (e.g., STDLIB and THIRDPARTY)
-no_lines_before = ["THIRDPARTY"]  # Prevent blank lines between third-party imports
