@@ -218,6 +218,8 @@ jobs:
           SERVICES=("frontend" "activity-tracking" "authservice" "analytics" "recipes")
           for service in "${SERVICES[@]}"; do
             echo "Building and pushing Docker image for $service"
-            docker build --cache-from $DOCKER_USERNAME/$service:latest -t $DOCKER_USERNAME/$service:latest -f ./$service/Dockerfile ./$service || exit 1
-            docker push $DOCKER_USERNAME/$service:latest || exit 1
+            docker buildx build --push --cache-from type=registry,ref=$DOCKER_USERNAME/$service:latest \
+              --cache-to type=inline,mode=max \
+              -t $DOCKER_USERNAME/$service:latest \
+              -f ./$service/Dockerfile ./$service || exit 1
           done
