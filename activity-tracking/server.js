@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const promClient = require('prom-client');
+require('dotenv').config(); 
 const config = require('./config.json');
 const { LogCategory } = require("./logging");
 const log = new LogCategory("activity-tracking-server.js");
@@ -28,6 +30,21 @@ if (process.env.NODE_ENV !== 'test') {
      log.error("MongoDB connection error:", error);
   });
 }
+
+// Create a Registry to register the metrics
+const register = new promClient.Registry();
+// Enable the collection of default metrics
+promClient.collectDefaultMetrics({ register });
+// Add a route for the metrics endpoint
+app.get('/metrics', async (req, res) => {
+  try {
+    // Retrieve metrics from the registry
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  } catch (err) {
+    res.status(500).end(err);
+  }
+});
 
 // Routes
 const exercisesRouter = require('./routes/exercises');

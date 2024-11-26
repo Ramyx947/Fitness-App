@@ -4,8 +4,10 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from pymongo import MongoClient
+from prometheus_flask_exporter import PrometheusMetrics
 
 app = Flask(__name__)
+metrics = PrometheusMetrics(app)
 CORS(
     app,
     resources={r"/*": {"origins": "*"}},
@@ -14,10 +16,11 @@ CORS(
 
 load_dotenv()
 mongo_uri = os.getenv('MONGO_URI')
-mongo_db = os.getenv('MONGO_DB')
 
 client = MongoClient(mongo_uri)
-db = client[mongo_db]
+db = client.test
+
+metrics.info('app_info', 'Application info', version='1.0.3')
 
 # Initialize the query type
 query = QueryType()
