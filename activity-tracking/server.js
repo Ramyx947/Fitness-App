@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const promClient = require('prom-client');
+const helmet = require("helmet");
 require('dotenv').config(); 
 const config = require('./config.json');
 const { LogCategory } = require("./logging");
@@ -15,6 +16,7 @@ const mongoUri = process.env.MONGO_URI || 'mongodb://root:cfgmla23@mongodb:27017
 const mongoDb = process.env.MONGO_DB || 'activity';  // Fallback to default
 
 // Middleware setup
+app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
