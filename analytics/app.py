@@ -206,6 +206,10 @@ def user_stats(username):
 def weekly_user_stats(user, start, end):
     print(f"Fetching weekly stats for user: {user}, time period: {start} - {end} ")
 
+    # Log input and pipeline
+    print(f"Start date: {start}, End date: {end}")
+    print(f"Pipeline: {pipeline}")
+
     # Parse the dates
     date_format = "%Y-%m-%d"
     start_date = datetime.strptime(start, date_format)
@@ -251,6 +255,7 @@ def weekly_user_stats(user, start, end):
     ]
 
     stats = list(db.exercises.aggregate(pipeline))
+    print(f"Aggregated stats: {stats}")
     return stats
 
 

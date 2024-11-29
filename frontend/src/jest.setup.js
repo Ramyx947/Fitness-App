@@ -10,3 +10,4 @@ beforeEach(() => {
         throw new Error('Network request attempted in a unit test');
     });
 });
+process.env.REACT_APP_API_URL = 'http://localhost:5300';

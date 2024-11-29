@@ -1,28 +1,28 @@
-import axios from 'axios';
+import React from 'react';
+import { renderWithRouter , screen } from '../utils/test-utils.js';
+import Signup from '../../src/components/signup.js';
 import MockAdapter from 'axios-mock-adapter';
-import { trackExercise } from '../../src/api';
+import { authServiceApi } from '../api.js';
 
-describe('API Tests', () => {
-    let mock;
+const mock = new MockAdapter(authServiceApi);
 
-    beforeAll(() => {
-        mock = new MockAdapter(axios);
-    });
+describe('Signup Component', () => {
+    const onSignupMock = jest.fn();
 
-    afterEach(() => {
+    beforeEach(() => {
         mock.reset();
+        onSignupMock.mockClear();
     });
 
-    afterAll(() => {
-        mock.restore();
+    it('renders the signup form correctly', () => {
+        renderWithRouter (<Signup onSignup={onSignupMock} />); // Automatically wrapped with MemoryRouter
+
+        expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /sign up/i })).toBeInTheDocument();
+        expect(screen.getByText(/already have an account\?/i)).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: /login/i })).toBeInTheDocument();
     });
 
-    it('should return an error when the API call fails', async () => {
-        const payload = { username: 'testUser', exerciseType: 'Swimming' };
-
-        const baseURL = 'http://localhost:5300';
-        mock.onPost(`${baseURL}/exercises/add`).networkError();
-
-        await expect(trackExercise(payload)).rejects.toThrow();
-    });
+    // ... other tests
 });

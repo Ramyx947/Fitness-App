@@ -11,8 +11,16 @@ const port = process.env.PORT || 5300;
 const mongoUri = process.env.MONGO_URI || 'mongodb://root:cfgmla23@mongodb:27017';  // Fallback to default
 const mongoDb = process.env.MONGO_DB || 'activity';  // Fallback to default
 
-// Middleware setup
-app.use(cors());
+// CORS configuration
+const corsOptions = {
+  origin: 'http://localhost:3001', // Allow requests from this origin
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+  credentials: true, // Allow credentials if necessary
+};
+
+app.use(cors(corsOptions)); // Enable CORS with the specified options
+
 app.use(express.json());
 
 // Only connect to MongoDB if not in test mode
@@ -32,9 +40,11 @@ if (process.env.NODE_ENV !== 'test') {
 const exercisesRouter = require('./routes/exercises');
 app.use('/exercises', exercisesRouter);
 
-// Error handling middleware
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   log.error(err.stack);
+  if (res.headersSent) {
+    return next(err);
+  }
   res.status(500).send('Something went wrong!');
 });
 

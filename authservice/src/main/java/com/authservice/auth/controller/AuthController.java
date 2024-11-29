@@ -39,4 +39,9 @@ public class AuthController {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
     }
+
+    @GetMapping("/healthcheck")
+    public ResponseEntity<?> healthCheck() {
+        return ResponseEntity.ok("AuthService is up and running!");
+    }
 }

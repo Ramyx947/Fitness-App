@@ -74,7 +74,7 @@ if you're missing any version, please contact your course administrator.
 
 ### Building entire project with Docker (+ starting containers up)
 ```sh
-docker-compose up --build
+ docker-compose -f docker-compose.yml -f docker-compose.develop.yml up --build
 ```
 
 ### Start existing containers (no rebuild of images)

@@ -1,18 +1,18 @@
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 import { Button, Form } from 'react-bootstrap';
-import { trackExercise } from '../api';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import IconButton from '@mui/material/IconButton';
 import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
-import BikeIcon from '@mui/icons-material/DirectionsBike';
+import DirectionsBikeIcon from '@mui/icons-material/DirectionsBike';
 import PoolIcon from '@mui/icons-material/Pool';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
-import OtherIcon from '@mui/icons-material/HelpOutline';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { getErrorMessage } from '../utils/errorHandle';
 
-const TrackExercise = ({ currentUser }) => {
+const TrackExercise = ({ currentUser, trackExercise }) => {
     const [state, setState] = useState({
         exerciseType: '',
         description: '',
@@ -20,14 +20,19 @@ const TrackExercise = ({ currentUser }) => {
         date: new Date(),
     });
     const [message, setMessage] = useState('');
+    const [error, setError] = useState('');
 
     const onSubmit = async (e) => {
         e.preventDefault();
 
         const dataToSubmit = {
             username: currentUser,
-            ...state,
+            exerciseType: state.exerciseType,
+            description: state.description,
+            duration: state.duration,
+            date: state.date.toISOString(),
         };
+        console.log('Submitting data:', dataToSubmit);
 
         try {
             const response = await trackExercise(dataToSubmit);
@@ -41,9 +46,12 @@ const TrackExercise = ({ currentUser }) => {
             });
 
             setMessage('Activity logged successfully! Well done!');
+            setError(''); // Clear any previous errors
             setTimeout(() => setMessage(''), 2000);
-        } catch (error) {
-            console.error('There was an error logging your activity!', error);
+        } catch (err) {
+            console.error('There was an error logging your activity!', err);
+            const errorMsg = getErrorMessage(err, 'Logging activity');
+            setError(errorMsg);
         }
     };
 
@@ -57,34 +65,54 @@ const TrackExercise = ({ currentUser }) => {
                 </Form.Group>
                 <div style={{ marginBottom: '20px' }}>
                     <IconButton
+                        aria-label="Running"
                         color={state.exerciseType === 'Running' ? 'primary' : 'default'}
-                        onClick={() => setState({ ...state, exerciseType: 'Running' })}
+                        onClick={(e) => {
+                            e.stopPropagation(); // Prevent propagation to parent
+                            setState({ ...state, exerciseType: 'Running' });
+                        }}
                     >
                         <DirectionsRunIcon fontSize="large" />
                     </IconButton>
                     <IconButton
+                        aria-label="Cycling"
                         color={state.exerciseType === 'Cycling' ? 'primary' : 'default'}
-                        onClick={() => setState({ ...state, exerciseType: 'Cycling' })}
+                        onClick={(e) => {
+                            e.stopPropagation(); // Prevent propagation to parent
+                            setState({ ...state, exerciseType: 'Cycling' });
+                        }}
                     >
-                        <BikeIcon fontSize="large" />
+                        <DirectionsBikeIcon fontSize="large" />
                     </IconButton>
                     <IconButton
+                        aria-label="Swimming"
                         color={state.exerciseType === 'Swimming' ? 'primary' : 'default'}
-                        onClick={() => setState({ ...state, exerciseType: 'Swimming' })}
+                        onClick={(e) => {
+                            e.stopPropagation(); // Prevent propagation to parent
+                            setState({ ...state, exerciseType: 'Swimming' });
+                        }}
                     >
                         <PoolIcon fontSize="large" />
                     </IconButton>
                     <IconButton
+                        aria-label="Gym"
                         color={state.exerciseType === 'Gym' ? 'primary' : 'default'}
-                        onClick={() => setState({ ...state, exerciseType: 'Gym' })}
+                        onClick={(e) => {
+                            e.stopPropagation(); // Prevent propagation to parent
+                            setState({ ...state, exerciseType: 'Gym' });
+                        }}
                     >
                         <FitnessCenterIcon fontSize="large" />
                     </IconButton>
                     <IconButton
+                        aria-label="Other"
                         color={state.exerciseType === 'Other' ? 'primary' : 'default'}
-                        onClick={() => setState({ ...state, exerciseType: 'Other' })}
+                        onClick={(e) => {
+                            e.stopPropagation(); // Prevent propagation to parent
+                            setState({ ...state, exerciseType: 'Other' });
+                        }}
                     >
-                        <OtherIcon fontSize="large" />
+                        <HelpOutlineIcon fontSize="large" />
                     </IconButton>
                 </div>
                 <Form.Group controlId="description" style={{ marginBottom: '20px' }}>
@@ -95,6 +123,7 @@ const TrackExercise = ({ currentUser }) => {
                         required
                         value={state.description}
                         onChange={(e) => setState({ ...state, description: e.target.value })}
+                        aria-label="Description"
                     />
                 </Form.Group>
                 <Form.Group controlId="duration" style={{ marginBottom: '40px' }}>
@@ -103,7 +132,8 @@ const TrackExercise = ({ currentUser }) => {
                         type="number"
                         required
                         value={state.duration}
-                        onChange={(e) => setState({ ...state, duration: e.target.value })}
+                        onChange={(e) => setState({ ...state, duration: Number(e.target.value) })}
+                        aria-label="Duration (in minutes)"
                     />
                 </Form.Group>
                 <Button variant="success" type="submit">
@@ -111,12 +141,15 @@ const TrackExercise = ({ currentUser }) => {
                 </Button>
             </Form>
             {message && <p style={{ color: 'green' }}>{message}</p>}
+            {error && <p style={{ color: 'red' }}>{error}</p>}
         </div>
     );
 };
 
-export default TrackExercise;
-
 TrackExercise.propTypes = {
     currentUser: PropTypes.string.isRequired,
+    trackExercise: PropTypes.func.isRequired,
 };
+
+export default TrackExercise;
+    

@@ -1,6 +1,3 @@
-# Multisate Dockerfile
-# integrating testing and CI/CD
-
 
 # ------------------------------
 # Stage 1: Base - Install System Dependencies and Node.js
@@ -73,6 +70,10 @@ RUN npm install --legacy-peer-deps
 # Stage 4: Production - Build the Production Image
 # ------------------------------
 FROM node:20-alpine AS production
+
+# Install curl for healthchecks
+RUN apk add --no-cache curl
+
 WORKDIR /app
 
 # Copy all dependencies from the dependencies stage

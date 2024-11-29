@@ -186,20 +186,25 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NODE_ENV: ${{ secrets.NODE_ENV_DEV }}
-      MONGO_DB: ${{ secrets.MONGO_DB_DEV }}
-      MONGO_URI: ${{ secrets.MONGO_URI }}
-      SPRING_DATA_MONGODB_DATABASE: ${{ secrets.SPRING_DATA_MONGODB_DATABASE_DEV }}
-      MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
-      MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
-      MONGO_DB_AUTH_DATABASE: authservice-dev
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      # following best practices of generating the env variables withing the runner for: security and consistency
+      - name: Generate .env file
+        run: |
+          echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
+          echo "MONGO_DB_ACTIVITY=${{ secrets.MONGO_DB_ACTIVITY }}" >> .env
+          echo "MONGO_DB_ANALYTICS=${{ secrets.MONGO_DB_ANALYTICS }}" >> .env
+          echo "MONGO_DB_RECIPES=${{ secrets.MONGO_DB_RECIPES }}" >> .env
+          echo "MONGO_DB_AUTHSERVICE=${{ secrets.MONGO_DB_AUTHSERVICE_DEV }}" >> .env
+          echo "MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }}" >> .env
+          echo "MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}" >> .env
+          echo "REACT_APP_ACTIVITY_URL=${{ secrets.REACT_APP_ACTIVITY_URL }}" >> .env
+          echo "REACT_APP_ANALYTICS_URL=${{ secrets.REACT_APP_ANALYTICS_URL }}" >> .env
+          echo "REACT_APP_RECIPES_URL=${{ secrets.REACT_APP_RECIPES_URL }}" >> .env
+          echo "REACT_APP_AUTHSERVICE_URL=${{ secrets.REACT_APP_AUTHSERVICE_URL }}" >> .env
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2

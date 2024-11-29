@@ -45,6 +45,9 @@ describe('Exercise API Tests', () => {
 
     const response = await request(app)
       .post('/exercises/add')
+      .set('Origin', 'http://localhost:3001') // Mock Origin header
+      .set('Access-Control-Request-Method', 'POST') // CORS preflight simulation
+      .set('Access-Control-Request-Headers', 'Content-Type') // CORS preflight headers
       .send(newExercise);
 
     expect(response.statusCode).toBe(200);

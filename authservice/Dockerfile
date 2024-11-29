@@ -13,6 +13,9 @@ RUN gradle bootJar --no-daemon
 # Stage 2: Run the application
 FROM openjdk:8-jre-slim
 
+# Install curl for healthchecks
+RUN apt-get update && apt-get install -y curl && apt-get clean
+
 # Set a volume for temporary files (optional but recommended)
 VOLUME /tmp
 

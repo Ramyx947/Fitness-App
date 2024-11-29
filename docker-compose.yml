@@ -1,87 +1,147 @@
+# --------------------------------------
+# Docker Compose configuration for the main branch.
+# Used for production builds.
+# --------------------------------------
 version: '3.8'
 services:
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    env_file:
+      - .env  # Loads the environment variables from the .env file
     environment:
-      REACT_APP_API_URL: ${REACT_APP_API_URL}
+      - NODE_ENV=production
+      - REACT_APP_ACTIVITY_URL=${REACT_APP_ACTIVITY_URL}
+      - REACT_APP_ANALYTICS_URL=${REACT_APP_ANALYTICS_URL}
+      - REACT_APP_RECIPES_URL=${REACT_APP_RECIPES_URL}
+      - REACT_APP_AUTHSERVICE_URL=${REACT_APP_AUTHSERVICE_URL}
     ports:
-      - "80:80"
-    volumes:
-      - ./frontend/build:/app/build
-      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf
+      - "3000:80"
     networks:
       - app-network
+    depends_on:
+      - activity-tracking
+      - analytics
+      - recipes
+      - authservice
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
 
   activity-tracking:
     build:
       context: ./activity-tracking
       dockerfile: Dockerfile
+    env_file:
+      - .env
     environment:
-      NODE_ENV: ${NODE_ENV}
-      MONGO_URI: ${MONGO_URI}
-      MONGO_DB: activity
-    ports:
-      - "5300:5300"
+      - NODE_ENV=${NODE_ENV}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB=${MONGO_DB_ACTIVITY}
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - app-network
+    volumes:
+      - activity-tracking-data:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5300/healthcheck"]
+      interval: 10s
+      retries: 5
 
   analytics:
     build:
       context: ./analytics
       dockerfile: Dockerfile
+    env_file:
+      - .env
     environment:
-      # SPRING_DATA_MONGODB_DATABASE: SPRING_DATA_MONGODB_DATABASE
-      SPRING_DATA_MONGODB_DATABASE: authservice
-      MONGO_URI: ${MONGO_URI}
-    ports:
-      - "5050:5050"
+      - NODE_ENV=${NODE_ENV}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB=${MONGO_DB_ANALYTICS}
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - app-network
+    volumes:
+      - analytics-data:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5050/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   recipes:
     build:
       context: ./recipes
       dockerfile: Dockerfile
+    env_file:
+      - .env
     environment:
-      NODE_ENV: ${NODE_ENV}
-      MONGO_URI: ${MONGO_URI}
-      MONGO_DB: recipes
-    ports:
-      - "5051:5051"
+      - NODE_ENV=production
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB=${MONGO_DB_RECIPES}
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - app-network
+    volumes:
+      - recipes-data:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5051/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   authservice:
     build:
       context: ./authservice
       dockerfile: Dockerfile
+    env_file:
+      - .env
     environment:
-      SPRING_DATA_MONGODB_DATABASE: ${MONGO_DB_AUTH_DATABASE}
-      SPRING_DATA_MONGODB_URI: ${MONGO_URI}
+    - SPRING_DATA_MONGODB_DATABASE=${MONGO_DB_AUTHSERVICE}
+    - SPRING_DATA_MONGODB_URI=${MONGO_URI}
     ports:
-      - "8080:8080"
+    - "8080:8080"
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - app-network
+    volumes:
+      - authservice-data:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   mongodb:
-    image: mongo:latest
+    image: mongo:8.0.3
+    container_name: team-3-mla-app-mongodb-1
+    restart: unless-stopped
+    env_file:
+      - .env
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_URI: ${MONGO_URI}
     ports:
       - "27017:27017"
     volumes:
       - mongodbdata:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh --quiet --username root --password cfgmla23 --authenticationDatabase admin
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - app-network
 
@@ -91,3 +151,7 @@ networks:
 
 volumes:
   mongodbdata:
+  activity-tracking-data:
+  analytics-data:
+  recipes-data:
+  authservice-data:
