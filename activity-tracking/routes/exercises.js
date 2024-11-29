@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const Exercise = require('../models/exercise.model');
+const limiter = require('../middleware/rate-limiter');
+
 const { LogCategory } = require("../logging");
 const log = new LogCategory("activity-tracker-exercises.js");
 
 // GET: Retrieve all exercises
-router.get('/', async (req, res) => {
+router.get('/', limiter, async (req, res) => {
     try {
       log.debug("[GET] Retrieve all exercises");
       const exercises = await Exercise.find();
@@ -47,7 +49,7 @@ router.post('/add', async (req, res) => {
 });
 
 // GET: Retrieve an exercise by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', limiter, async (req, res) => {
   try {
     const exercise = await Exercise.findById(req.params.id);
     if (!exercise) {
