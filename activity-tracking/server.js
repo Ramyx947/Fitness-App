@@ -11,8 +11,8 @@ require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 5300;
-const mongoUri = process.env.MONGO_URI || 'mongodb://root:cfgmla23@mongodb:27017';  // Fallback to default
-const mongoDb = process.env.MONGO_DB || 'activity';  // Fallback to default
+const mongoUri = process.env.MONGO_URI || config.mongoUri;
+const mongoDb = process.env.MONGO_DB || config.mongoDb;
 
 // Middleware setup
 app.use(cors());
@@ -27,7 +27,8 @@ if (process.env.NODE_ENV !== 'test') {
   
   const connection = mongoose.connection;
   connection.on('error', (error) => {
-     log.error("MongoDB connection error:", error);
+    console.error("mongoUri", mongoUri)
+    console.error("MongoDB connection error:", error);
   });
 }
 

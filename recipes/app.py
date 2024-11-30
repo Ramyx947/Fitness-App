@@ -16,9 +16,10 @@ CORS(
 
 load_dotenv()
 mongo_uri = os.getenv('MONGO_URI')
+mongo_db = os.getenv('MONGO_DB')
 
 client = MongoClient(mongo_uri)
-db = client.test
+db = client[mongo_db]
 
 metrics.info('app_info', 'Application info', version='1.0.3')
 
@@ -80,6 +81,34 @@ def add_recipe(_, info, recipe):
         payload = {
             "success": False,
             "message": "Failed to add the recipe"
+        }
+
+    print(payload)
+    return payload
+
+
+@mutation.field("removeRecipe")
+def remove_recipe(_, info, recipe):
+    try:
+        print("Add recipe mutation called")
+        # Insert the recipe into the database
+        db.recipes.delete_one(recipe)
+
+        # Fetch the recipe from the database
+        dbRecipe = db.recipes.find_one({"recipeName": recipe["recipeName"]})
+        if dbRecipe is not None:
+            raise Exception("Failed to remove the recipe")
+
+        payload = {
+            "success": True,
+            "message": "Recipe removed successfully",
+            "recipe": recipe
+        }
+    except Exception as error:
+        print(f"Error: {error}")
+        payload = {
+            "success": False,
+            "message": "Failed to remove the recipe"
         }
 
     print(payload)
