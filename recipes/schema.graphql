@@ -53,6 +53,13 @@ type AddRecipeResult {
   recipe: Recipe
 }
 
+type RemoveRecipeResult {
+  success: Boolean!
+  errors: [String]
+  recipe: Recipe
+}
+
 type Mutation {
   addRecipe(recipe: RecipeInput!): AddRecipeResult
+  removeRecipe(recipe: RecipeInput!): RemoveRecipeResult
 }

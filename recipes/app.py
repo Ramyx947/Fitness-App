@@ -87,6 +87,34 @@ def add_recipe(_, info, recipe):
     return payload
 
 
+@mutation.field("removeRecipe")
+def remove_recipe(_, info, recipe):
+    try:
+        print("Add recipe mutation called")
+        # Insert the recipe into the database
+        db.recipes.delete_one(recipe)
+
+        # Fetch the recipe from the database
+        dbRecipe = db.recipes.find_one({"recipeName": recipe["recipeName"]})
+        if dbRecipe is not None:
+            raise Exception("Failed to remove the recipe")
+
+        payload = {
+            "success": True,
+            "message": "Recipe removed successfully",
+            "recipe": recipe
+        }
+    except Exception as error:
+        print(f"Error: {error}")
+        payload = {
+            "success": False,
+            "message": "Failed to remove the recipe"
+        }
+
+    print(payload)
+    return payload
+
+
 # Set the path to the schema file and load it
 schema_directory = os.path.dirname(os.path.abspath(__file__))
 schema_path = os.path.join(schema_directory, "schema.graphql")
