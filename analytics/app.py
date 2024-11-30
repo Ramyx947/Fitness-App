@@ -20,9 +20,10 @@ title = "Weekly Exercise Tracker Statistics"
 heading = "MLA Flask Microservice"
 user = "testuser"
 mongo_uri = os.getenv('MONGO_URI')
+mongo_db = os.getenv('MONGO_DB')
 
 client = MongoClient(mongo_uri)
-db = client.test
+db = client[mongo_db]
 
 metrics.info('app_info', 'Application info', version='1.0.3')
 
