@@ -5,7 +5,7 @@ from pymongo import MongoClient
 from flask_cors import CORS
 from bson import json_util
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from ariadne import load_schema_from_path, make_executable_schema, graphql_sync, QueryType
 from prometheus_flask_exporter import PrometheusMetrics
 
@@ -210,7 +210,7 @@ def weekly_user_stats(user, start, end):
                 "username": user,
                 "date": {
                     "$gte": start_date,
-                    "$lte": end_date
+                    "$lte": end_date + timedelta(days=1)
                 }
             }
         },
