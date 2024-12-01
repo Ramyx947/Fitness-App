@@ -33,6 +33,8 @@ prometheus-flask-exporter = "^0.23.1"
 
 
 [tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
+pytest-flask = "^1.3.0"
 mongomock = "^4.2.0.post1"
 flake8 = "^7.1.1"
 
