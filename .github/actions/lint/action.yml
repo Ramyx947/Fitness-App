@@ -32,33 +32,68 @@ runs:
           exit 1
           ;;
       esac
-
+  - name: Debug Working Directory
+    shell: bash
+    run: |
+      echo "Checking working directory for Node.js:"
+      ls -la "${{ github.workspace }}/${{ inputs.working_directory }}"
   - name: Install Dependencies
     shell: bash
     run: |
+      set -e
       case "${{ inputs.language }}" in
         node)
-          npm install --prefix "${{ inputs.working_directory }}"
+          if [ -f "${{ github.workspace }}/${{ inputs.working_directory }}/package-lock.json" ]; then
+            npm ci --prefix "${{ github.workspace }}/${{ inputs.working_directory }}" || npm install --verbose --prefix "${{ github.workspace }}/${{ inputs.working_directory }}"
+          else
+            echo "No package-lock.json found; falling back to npm install"
+            npm install --verbose --prefix "${{ github.workspace }}/${{ inputs.working_directory }}"
+          fi
           ;;
         python)
-          poetry install -C "${{ inputs.working_directory }}"
+          if [ -f "${{ github.workspace }}/${{ inputs.working_directory }}/pyproject.toml" ]; then
+            # Install Poetry if not available
+            if ! command -v poetry &> /dev/null; then
+              curl -sSL https://install.python-poetry.org | python3 -
+              export PATH="$HOME/.local/bin:$PATH"
+            fi
+            poetry install --no-root -C "${{ github.workspace }}/${{ inputs.working_directory }}"
+          else
+            echo "No pyproject.toml found in ${{ inputs.working_directory }}"
+            exit 1
+          fi
           ;;
         java)
-          "${{ inputs.working_directory }}/gradlew" build --no-daemon
+          if [ -f "${{ github.workspace }}/${{ inputs.working_directory }}/gradlew" ]; then
+            chmod +x "${{ github.workspace }}/${{ inputs.working_directory }}/gradlew"
+            "${{ github.workspace }}/${{ inputs.working_directory }}/gradlew" build --no-daemon
+          else
+            echo "gradlew not found in ${{ inputs.working_directory }}. Please check the directory structure."
+            exit 1
+          fi
+          ;;
+        *)
+          echo "Unsupported language: ${{ inputs.language }}"
+          exit 1
           ;;
       esac
-
   - name: Run Linter
     shell: bash
     run: |
+      set -e
       case "${{ inputs.language }}" in
         node)
-          npm run lint --prefix "${{ inputs.working_directory }}"
+          npm run lint
           ;;
         python)
-          poetry run flake8 "${{ inputs.working_directory }}"
+          poetry run flake8 .
           ;;
         java)
-          "${{ inputs.working_directory }}/gradlew" check --no-daemon
+          ./gradlew checkstyleMain --no-daemon
+          ;;
+        *)
+          echo "Unsupported language: ${{ inputs.language }}"
+          exit 1
           ;;
       esac
+    working-directory: ${{ inputs.working_directory }}

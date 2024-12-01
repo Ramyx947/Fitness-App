@@ -11,36 +11,80 @@ inputs:
   working_directory:
     description: 'Directory of the service'
     required: true
-
 runs:
   using: 'composite'
   steps:
+  - name: Set up Language Environment
+    shell: bash
+    run: |
+      case "${{ inputs.language }}" in
+        python)
+          echo "Python environment will be set up in the workflow."
+          ;;
+        java)
+          echo "Java environment will be set up in the workflow."
+          ;;
+        node)
+          echo "Node.js environment will be set up in the workflow."
+          ;;
+        *)
+          echo "Unsupported language: ${{ inputs.language }}"
+          exit 1
+          ;;
+      esac
   - name: Install Dependencies
     shell: bash
     run: |
+      set -e
       case "${{ inputs.language }}" in
         node)
-          npm install --prefix "${{ inputs.working_directory }}"
+          if [ -f "${{ github.workspace }}/${{ inputs.working_directory }}/package-lock.json" ]; then
+            npm ci --prefix "${{ github.workspace }}/${{ inputs.working_directory }}" || npm install --verbose --prefix "${{ github.workspace }}/${{ inputs.working_directory }}"
+          else
+            echo "No package-lock.json found; falling back to npm install"
+            npm install --verbose --prefix "${{ github.workspace }}/${{ inputs.working_directory }}"
+          fi
           ;;
         python)
-          poetry install -C "${{ inputs.working_directory }}"
+          if [ -f "${{ github.workspace }}/${{ inputs.working_directory }}/pyproject.toml" ]; then
+            # Install Poetry if not available
+            if ! command -v poetry &> /dev/null; then
+              curl -sSL https://install.python-poetry.org | python3 -
+              export PATH="$HOME/.local/bin:$PATH"
+            fi
+            poetry install --no-root -C "${{ github.workspace }}/${{ inputs.working_directory }}"
+          else
+            echo "No dependency file found for Python in ${{ inputs.working_directory }}"
+            exit 1
+          fi
           ;;
         java)
-          "${{ inputs.working_directory }}/gradlew" build --no-daemon
+          if [ -f "${{ github.workspace }}/${{ inputs.working_directory }}/gradlew" ]; then
+            chmod +x "${{ github.workspace }}/${{ inputs.working_directory }}/gradlew"
+            "${{ github.workspace }}/${{ inputs.working_directory }}/gradlew" test --no-daemon
+          else
+            echo "gradlew not found in ${{ inputs.working_directory }}. Please check the directory structure."
+            exit 1
+          fi
           ;;
       esac
-
   - name: Run Unit Tests
     shell: bash
     run: |
+      set -e
       case "${{ inputs.language }}" in
         node)
-          npm test --prefix "${{ inputs.working_directory }}"
+          npm test
           ;;
         python)
-          poetry run pytest "${{ inputs.working_directory }}"
+          poetry run pytest
           ;;
         java)
-          "${{ inputs.working_directory }}/gradlew" test --no-daemon
+          ./gradlew test --no-daemon
+          ;;
+        *)
+          echo "Unsupported language: ${{ inputs.language }}"
+          exit 1
           ;;
       esac
+    working-directory: ${{ inputs.working_directory }}

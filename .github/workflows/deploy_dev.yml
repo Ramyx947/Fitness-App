@@ -25,91 +25,75 @@ jobs:
       matrix:
         service: ["frontend", "activity-tracking", "analytics", "recipes"]
     steps:
-      - name: Lint Service
-        uses: ./.github/actions/lint
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set Service Variables
+        run: |
+          case "${{ matrix.service }}" in
+            frontend)
+              echo "language=node" >> $GITHUB_ENV
+              echo "working_directory=frontend" >> $GITHUB_ENV
+              ;;
+            activity-tracking)
+              echo "language=node" >> $GITHUB_ENV
+              echo "working_directory=activity-tracking" >> $GITHUB_ENV
+              ;;
+            analytics)
+              echo "language=python" >> $GITHUB_ENV
+              echo "working_directory=analytics" >> $GITHUB_ENV
+              ;;
+            recipes)
+              echo "language=python" >> $GITHUB_ENV
+              echo "working_directory=recipes" >> $GITHUB_ENV
+              ;;
+          esac
+      - name: Set up Python
+        if: ${{ env.language == 'python' }}
+        uses: actions/setup-python@v4
         with:
-          service: ${{ matrix.service }}
-          language: ${{ matrix.language }}
-          working_directory: ${{ matrix.working_directory }}
-  # lint:
-  #   name: Run Linting
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       service: ["frontend", "activity-tracking", "analytics", "recipes"]
-  #   steps:
-  #     - name: Checkout Code
-  #       uses: actions/checkout@v4
+          python-version: '3.8'
 
-  #     - name: Set Service Variables
-  #       run: |
-  #         case "${{ matrix.service }}" in
-  #           frontend)
-  #             echo "language=node" >> $GITHUB_ENV
-  #             echo "working_directory=frontend" >> $GITHUB_ENV
-  #             ;;
-  #           activity-tracking)
-  #             echo "language=node" >> $GITHUB_ENV
-  #             echo "working_directory=activity-tracking" >> $GITHUB_ENV
-  #             ;;
-  #           analytics)
-  #             echo "language=python" >> $GITHUB_ENV
-  #             echo "working_directory=analytics" >> $GITHUB_ENV
-  #             ;;
-  #           recipes)
-  #             echo "language=python" >> $GITHUB_ENV
-  #             echo "working_directory=recipes" >> $GITHUB_ENV
-  #             ;;
-  #         esac
+      - name: Install Poetry (if using Python)
+        if: ${{ env.language == 'python' }}
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Regenerate poetry.lock (if missing or corrupted)
+        if: ${{ env.language == 'python' && !hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
+        run: |
+          cd ${{ github.workspace }}/${{ env.working_directory }}
+          poetry lock --no-update
+      - name: Cache Dependencies
+        if: ${{ env.language == 'node' }}
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.working_directory }}/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles(format('{0}/package-lock.json', env.working_directory)) }}
 
-  #     - name: Set up Python
-  #       if: ${{ env.language == 'python' }}
-  #       uses: actions/setup-python@v4
-  #       with:
-  #         python-version: '3.8'
+      - name: Cache Poetry
+        if: ${{ env.language == 'python' && hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
 
-  #     - name: Install Poetry (if using Python)
-  #       if: ${{ env.language == 'python' }}
-  #       run: |
-  #         curl -sSL https://install.python-poetry.org | python3 -
-  #         echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-  #     - name: Regenerate poetry.lock (if missing or corrupted)
-  #       if: ${{ env.language == 'python' && !hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
-  #       run: |
-  #         cd ${{ github.workspace }}/${{ env.working_directory }}
-  #         poetry lock --no-update
-
-  #     - name: Cache Dependencies
-  #       if: ${{ env.language == 'node' }}
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: ${{ env.working_directory }}/node_modules
-  #         key: ${{ runner.os }}-node-${{ hashFiles(format('{0}/package-lock.json', env.working_directory)) }}
-      
-  #     - name: Cache Poetry
-  #       if: ${{ env.language == 'python' && hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: ~/.cache/pypoetry
-  #         key: ${{ runner.os }}-poetry-${{ hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
-      
-  #     - name: Set up Language Environment and Run Lint
-  #       run: |
-  #         cd ${{ github.workspace }}/${{ env.working_directory }}
-  #         case "${{ env.language }}" in
-  #           node)
-  #             echo "Setting up Node.js environment..."
-  #             npm install
-  #             npm run lint
-  #             ;;
-  #           python)
-  #             echo "Setting up Python environment..."
-  #             poetry lock --no-update
-  #             poetry install
-  #             poetry run flake8 .
-  #             ;;
-  #         esac
+      - name: Set up Language Environment and Run Lint
+        run: |
+          cd ${{ github.workspace }}/${{ env.working_directory }}
+          case "${{ env.language }}" in
+            node)
+              echo "Setting up Node.js environment..."
+              npm install
+              npm run lint
+              ;;
+            python)
+              echo "Setting up Python environment..."
+              poetry lock --no-update
+              poetry install
+              poetry run flake8 .
+              ;;
+          esac
   unit_tests:
     name: Run Unit Tests
     runs-on: ubuntu-latest
@@ -117,92 +101,77 @@ jobs:
       matrix:
         service: ["frontend", "activity-tracking", "analytics", "recipes"]
     steps:
-      - name: Run Unit Tests for Service
-        uses: ./.github/actions/unit-tests
-        with:
-          service: ${{ matrix.service }}
-          language: ${{ matrix.language }}
-          working_directory: ${{ matrix.working_directory }}
-  # unit_tests:
-  #   name: Run Unit Tests
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       service: ["frontend", "activity-tracking", "analytics", "recipes"]
-  #   steps:
-  #     - name: Checkout Code
-  #       uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-  #     - name: Set Service Variables
-  #       run: |
-  #         case "${{ matrix.service }}" in
-  #           frontend)
-  #             echo "language=node" >> $GITHUB_ENV
-  #             echo "working_directory=frontend" >> $GITHUB_ENV
-  #             ;;
-  #           activity-tracking)
-  #             echo "language=node" >> $GITHUB_ENV
-  #             echo "working_directory=activity-tracking" >> $GITHUB_ENV
-  #             ;;
-  #           analytics)
-  #             echo "language=python" >> $GITHUB_ENV
-  #             echo "working_directory=analytics" >> $GITHUB_ENV
-  #             ;;
-  #           recipes)
-  #             echo "language=python" >> $GITHUB_ENV
-  #             echo "working_directory=recipes" >> $GITHUB_ENV
-  #             ;;
-  #         esac
+      - name: Set Service Variables
+        run: |
+          case "${{ matrix.service }}" in
+            frontend)
+              echo "language=node" >> $GITHUB_ENV
+              echo "working_directory=frontend" >> $GITHUB_ENV
+              ;;
+            activity-tracking)
+              echo "language=node" >> $GITHUB_ENV
+              echo "working_directory=activity-tracking" >> $GITHUB_ENV
+              ;;
+            analytics)
+              echo "language=python" >> $GITHUB_ENV
+              echo "working_directory=analytics" >> $GITHUB_ENV
+              ;;
+            recipes)
+              echo "language=python" >> $GITHUB_ENV
+              echo "working_directory=recipes" >> $GITHUB_ENV
+              ;;
+          esac
           
-  #     - name: Set up Python
-  #       if: ${{ env.language == 'python' }}
-  #       uses: actions/setup-python@v4
-  #       with:
-  #         python-version: '3.8'
+      - name: Set up Python
+        if: ${{ env.language == 'python' }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
 
-  #     - name: Install Poetry (if using Python)
-  #       if: ${{ env.language == 'python' }}
-  #       run: |
-  #         curl -sSL https://install.python-poetry.org | python3 -
-  #         echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Install Poetry (if using Python)
+        if: ${{ env.language == 'python' }}
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
       
-  #     - name: Regenerate poetry.lock (if missing or corrupted)
-  #       if: ${{ env.language == 'python' && !hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
-  #       run: |
-  #         cd ${{ github.workspace }}/${{ env.working_directory }}
-  #         poetry lock --no-update
+      - name: Regenerate poetry.lock (if missing or corrupted)
+        if: ${{ env.language == 'python' && !hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
+        run: |
+          cd ${{ github.workspace }}/${{ env.working_directory }}
+          poetry lock --no-update
+      - name: Cache Dependencies
+        if: ${{ env.language == 'node' }}
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.working_directory }}/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles(format('{0}/package-lock.json', env.working_directory)) }}
 
-  #     - name: Cache Dependencies
-  #       if: ${{ env.language == 'node' }}
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: ${{ env.working_directory }}/node_modules
-  #         key: ${{ runner.os }}-node-${{ hashFiles(format('{0}/package-lock.json', env.working_directory)) }}
-      
-  #     - name: Cache Poetry
-  #       if: ${{ env.language == 'python' && hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: ~/.cache/pypoetry
-  #         key: ${{ runner.os }}-poetry-${{ hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
-      
-  #     - name: Set up Language Environment and Run Tests
-  #       run: |
-  #         cd ${{ github.workspace }}/${{ env.working_directory }}
-  #         case "${{ env.language }}" in
-  #           node)
-  #             echo "Setting up Node.js environment and running tests..."
-  #             npm install
-  #             npm test
-  #             ;;
-  #           python)
-  #             echo "Setting up Python environment and running tests..."
-  #             poetry lock --no-update
-  #             poetry install
-  #             poetry run pytest
-  #             ;;
-  #         esac
+      - name: Cache Poetry
+        if: ${{ env.language == 'python' && hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
 
+      - name: Set up Language Environment and Run Tests
+        run: |
+          cd ${{ github.workspace }}/${{ env.working_directory }}
+          case "${{ env.language }}" in
+            node)
+              echo "Setting up Node.js environment and running tests..."
+              npm install
+              npm test
+              ;;
+            python)
+              echo "Setting up Python environment and running tests..."
+              poetry lock --no-update
+              poetry install
+              poetry run pytest
+              ;;
+          esac
   build_and_deploy:
     name: Build and Deploy to Docker Hub
     needs:
