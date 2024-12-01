@@ -29,7 +29,7 @@ beforeEach(async () => {
     exerciseType: 'Swimming',
     description: 'Morning swim',
     duration: 30,
-    date: new Date('2024-02-01T09:00:00Z'),
+    date: new Date('2024-01-01T09:00:00Z'),
   });
 
   // Save exercise and store its ID
@@ -106,7 +106,7 @@ describe('Exercise API Tests', () => {
       exerciseType: 'Swimming',
       description: 'Morning swim',
       duration: 30,
-      date: new Date('2024-01-01T09:00:00Z'),
+      date: new Date('2024-01-02T09:00:00Z'),
     }, false); // isDatabase = false
   });
 
