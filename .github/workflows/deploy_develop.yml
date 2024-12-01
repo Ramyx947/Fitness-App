@@ -282,3 +282,22 @@ jobs:
           done
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b $HOME/.local/bin
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Scan Docker Images for Vulnerabilities
+        run: |
+          SERVICES=("frontend" "activity-tracking" "authservice" "analytics" "recipes")
+          for service in "${SERVICES[@]}"; do
+            echo "Scanning Docker image for $service"
+            docker_user="${DOCKER_USERNAME:-}"
+            docker_image="${docker_user}/${service}:latest"
+
+            # Scan the image with Trivy
+            trivy image --severity HIGH,CRITICAL $docker_image || exit 1
+          done
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
