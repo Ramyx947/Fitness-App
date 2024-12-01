@@ -1,6 +1,6 @@
 # ––––––––––––––––––––––––––––––––
-# This workflow builds and pushes Docker images to the Staging Environment.
-# It automates testing, static code analysis, security scanning, and deployment to a staging environment. 
+# This workflow builds and pushes Docker images to the Testing/QA Environment.
+# It automates testing, static code analysis, security scanning, and deployment to a testing/QA environment. 
 # It ensures the application is reliable, secure, and ready for production.
 # The focus is on validating the code's correctness, security, performance, and compliance.
 # It runs automatically when there is a push to the testing branch.
@@ -8,7 +8,7 @@
 # It also checks commit messages for the service's name to determine if the service needs rebuilding.
 # Ensure that DOCKER_USERNAME and DOCKER_PASSWORD are added to GitHub secrets for authentication.
 # ––––––––––––––––––––––––––––––––
-name: Test Deploy to the Staging Environment
+name: Test Deploy to Testing/QA
 
 on:
   push:
@@ -245,7 +245,7 @@ jobs:
           working_directory: ${{ env.working_directory }}  
 
   build_and_deploy:
-    name: Build and Deploy to Staging Environment
+    name: Build and Deploy to Testing/QA
     runs-on: ubuntu-latest
     env:
       NODE_ENV: ${{ secrets.NODE_ENV_DEV }}
