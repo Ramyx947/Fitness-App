@@ -1,47 +1,105 @@
-name: Security Scan
+name: Security Scans Action
 
-description: 'Run security scans using Trivy and CodeQL.'
+description: 'Run security scans for the specified service'
 inputs:
-    repository:
-        description: 'Repository to scan'
-        required: true
-    codeql_language:
-        description: 'The programming language for CodeQL analysis'
-        required: true
-outputs:
-    scan-results:
-        description: 'Results of the security scan'
+  service:
+    description: 'Name of the service to test'
+    required: true
+  language:
+    description: 'Programming language of the service'
+    required: true
+  working_directory:
+    description: 'Directory of the service'
+    required: true
 runs:
-    using: 'composite'
-    steps:
-        # Checkout the repository
-        - name: Check out code
-          uses: actions/checkout@v3
-            
-        # Trivy scan for container or dependencies
-        - name: Run Trivy scan
-          run: |
-            trivy fs . > trivy-results.txt
-          shell: bash
+  using: 'composite'
+  steps:
+    - name: Set up Language Environment
+      shell: bash
+      run: |
+        case "${{ inputs.language }}" in
+          python)
+            echo "Python environment will be set up in the workflow."
+            ;;
+          java)
+            echo "Java environment will be set up in the workflow."
+            ;;
+          node)
+            echo "Node.js environment will be set up in the workflow."
+            ;;
+          *)
+            echo "Unsupported language: ${{ inputs.language }}"
+            exit 1
+            ;;
+        esac
+    - name: Install Dependencies
+      shell: bash
+      run: |
+        set -e
+        case "${{ inputs.language }}" in
+          node)
+            if [ -f "${{ github.workspace }}/${{ inputs.working_directory }}/package-lock.json" ]; then
+              npm ci --prefix "${{ github.workspace }}/${{ inputs.working_directory }}" || npm install --verbose --prefix "${{ github.workspace }}/${{ inputs.working_directory }}"
+            else
+              echo "No package-lock.json found; falling back to npm install"
+              npm install --verbose --prefix "${{ github.workspace }}/${{ inputs.working_directory }}"
+            fi
+            ;;
+          python)
+            if [ -f "${{ github.workspace }}/${{ inputs.working_directory }}/pyproject.toml" ]; then
+              # Install Poetry if not available
+              if ! command -v poetry &> /dev/null; then
+                curl -sSL https://install.python-poetry.org | python3 -
+                export PATH="$HOME/.local/bin:$PATH"
+              fi
+              poetry install --no-root -C "${{ github.workspace }}/${{ inputs.working_directory }}"
+            else
+              echo "No dependency file found for Python in ${{ inputs.working_directory }}"
+              exit 1
+            fi
+            ;;
+          java)
+            if [ -f "${{ github.workspace }}/${{ inputs.working_directory }}/gradlew" ]; then
+              chmod +x "${{ github.workspace }}/${{ inputs.working_directory }}/gradlew"
+              "${{ github.workspace }}/${{ inputs.working_directory }}/gradlew" test --no-daemon
+            else
+              echo "gradlew not found in ${{ inputs.working_directory }}. Please check the directory structure."
+              exit 1
+            fi
+            ;;
+        esac
+    - name: Run Security Scans
+      shell: bash
+      run: |
+      case "${{ inputs.language }}" in
+        node)
+          echo "Running Node.js security scan using Snyk..."
+          npm install -g snyk
+          snyk test --all-projects --json > snyk-report.json
+          ;;
+        python)
+          echo "Running Python security scan using Bandit..."
+          pip install bandit
+          bandit -r "${{ github.workspace }}/${{ inputs.working_directory }}" -f html -o bandit-report.html
+          ;;
+        java)
+          echo "Running Java security scan using OWASP Dependency-Check..."
+          curl -sSL https://dl.bintray.com/jeremy-long/DependencyCheck/dependency-check-6.3.2-release.zip -o dependency-check.zip
+          unzip dependency-check.zip -d dependency-check
+          chmod +x dependency-check/bin/dependency-check.sh
+          dependency-check/bin/dependency-check.sh --project "${{ inputs.service }}" --scan "${{ github.workspace }}/${{ inputs.working_directory }}" --format "HTML" --out "${{ github.workspace }}/${{ inputs.working_directory }}/dependency-check-report.html"
+          ;;
+        *)
+          echo "Unsupported language for security scan: ${{ inputs.language }}"
+          exit 1
+          ;;
+      esac
 
-        # CodeQL scan for code analysis
-        - name: Set up CodeQL
-          uses: github/codeql-action/init@v2
-          with:
-            languages: ${{ inputs.codeql_language }}
-        
-        - name: Run CodeQL analysis
-          uses: github/codeql-action/analyze@v2
-          with:
-            category: 'security-scan'
-        
-        # Output results
-        - name: Summarize results
-          id: results
-          run: | 
-            echo "Security Scan Complete"
-            cat trivy-results.txt
-          shell: bash
-
-        - name: Set scan results output
-          run: echo "scan-results=Security scan completed. Check logs for details." >> $GITHUB_ENV
+    - name: Upload Security Reports as Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          bandit-report.html
+          snyk-report.json
+          dependency-check-report.html

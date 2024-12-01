@@ -197,14 +197,53 @@ jobs:
           working_directory: ${{ env.working_directory }}
 
   security_scan:
+    name: Run Unit Tests
+    needs: determine_changes
+    if: ${{ needs.determine_changes.outputs.services != '[]' && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_lint == 'true') }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.determine_changes.outputs.services) }}
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set Service Variables
+        run: |
+          case "${{ matrix.service }}" in
+            frontend)
+              echo "language=node" >> $GITHUB_ENV
+              echo "working_directory=frontend" >> $GITHUB_ENV
+              ;;
+            activity-tracking)
+              echo "language=node" >> $GITHUB_ENV
+              echo "working_directory=activity-tracking" >> $GITHUB_ENV
+              ;;
+            analytics)
+              echo "language=python" >> $GITHUB_ENV
+              echo "working_directory=analytics" >> $GITHUB_ENV
+              ;;
+            recipes)
+              echo "language=python" >> $GITHUB_ENV
+              echo "working_directory=recipes" >> $GITHUB_ENV
+              ;;
+            authservice)
+              echo "language=java" >> $GITHUB_ENV
+              echo "working_directory=authservice" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "Unsupported service: ${{ matrix.service }}"
+              exit 1
+              ;;
+          esac
+
       - name: Run Security Scan
         uses: ./.github/actions/security-scan
         with:
-          repository: ${{ github.repository }}
-          codeql_language: 'python'
-  
+          service: ${{ matrix.service }}
+          language: ${{ env.language }}
+          working_directory: ${{ env.working_directory }}  
+
   build_and_deploy:
     name: Build and Deploy to Staging Environment
     runs-on: ubuntu-latest
