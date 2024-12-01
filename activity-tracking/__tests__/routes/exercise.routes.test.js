@@ -47,7 +47,7 @@ describe('Exercise API Tests', () => {
    * Test Case 1: POST - Create a new exercise
    */
   it('should create a new exercise with correct data types', async () => {
-    const fixedDate = new Date('2024-01-02T10:00:00Z');
+    const fixedDate = new Date('2024-02-01T08:00:00Z');
     const newExercise = {
       username: 'UserTwo',
       exerciseType: 'Running',
