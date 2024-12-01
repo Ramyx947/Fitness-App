@@ -18,6 +18,55 @@ on:
         default: 'develop'
 
 jobs:
+  determine_changes:
+    name: Determine Changed Services
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.set_services.outputs.services }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Determine Changed Services
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          base: develop
+          filters: |
+            frontend:
+              - 'frontend/**'
+            activity-tracking:
+              - 'activity-tracking/**'
+            authservice:
+              - 'authservice/**'
+            analytics:
+              - 'analytics/**'
+            recipes:
+              - 'recipes/**'
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Set Services Output
+        id: set_services
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.services }}" ]; then
+            if [ -z "${{ github.event.inputs.services }}" ]; then
+              SERVICES_JSON='[]'
+            else
+              SERVICES_JSON=$(echo "${{ github.event.inputs.services }}" | tr ',' '\n' | jq -R . | jq -s .)
+            fi
+          else
+            SERVICES_JSON='${{ steps.filter.outputs.changes }}'
+          fi
+          echo "services<<EOF" >> $GITHUB_OUTPUT
+          echo "$SERVICES_JSON" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Debug Services Output
+        run: |
+          echo "Changed services: ${{ steps.set_services.outputs.services }}"
+
   lint:
     name: Run Linting
     runs-on: ubuntu-latest
