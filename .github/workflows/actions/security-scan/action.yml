@@ -1,0 +1,47 @@
+name: Security Scan
+
+description: 'Run security scans using Trivy and CodeQL.'
+inputs:
+    repository:
+        description: 'Repository to scan'
+        required: true
+    codeql_language:
+        description: 'The programming language for CodeQL analysis'
+        required: true
+outputs:
+    scan-results:
+        description: 'Results of the security scan'
+runs:
+    using: 'composite'
+    steps:
+        # Checkout the repository
+        - name: Check out code
+          uses: actions/checkout@v3
+            
+        # Trivy scan for container or dependencies
+        - name: Run Trivy scan
+          run: |
+            trivy fs . > trivy-results.txt
+          shell: bash
+
+        # CodeQL scan for code analysis
+        - name: Set up CodeQL
+          uses: github/codeql-action/init@v2
+          with:
+            languages: ${{ inputs.codeql_language }}
+        
+        - name: Run CodeQL analysis
+          uses: github/codeql-action/analyze@v2
+          with:
+            category: 'security-scan'
+        
+        # Output results
+        - name: Summarize results
+          id: results
+          run: | 
+            echo "Security Scan Complete"
+            cat trivy-results.txt
+          shell: bash
+
+        - name: Set scan results output
+          run: echo "scan-results=Security scan completed. Check logs for details." >> $GITHUB_ENV
