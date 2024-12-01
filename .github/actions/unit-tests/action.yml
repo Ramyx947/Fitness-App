@@ -1,0 +1,46 @@
+name: Unit Tests Action
+
+description: 'Run unit tests for the specified service'
+inputs:
+  service:
+    description: 'Name of the service to test'
+    required: true
+  language:
+    description: 'Programming language of the service'
+    required: true
+  working_directory:
+    description: 'Directory of the service'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+  - name: Install Dependencies
+    shell: bash
+    run: |
+      case "${{ inputs.language }}" in
+        node)
+          npm install --prefix "${{ inputs.working_directory }}"
+          ;;
+        python)
+          poetry install -C "${{ inputs.working_directory }}"
+          ;;
+        java)
+          "${{ inputs.working_directory }}/gradlew" build --no-daemon
+          ;;
+      esac
+
+  - name: Run Unit Tests
+    shell: bash
+    run: |
+      case "${{ inputs.language }}" in
+        node)
+          npm test --prefix "${{ inputs.working_directory }}"
+          ;;
+        python)
+          poetry run pytest "${{ inputs.working_directory }}"
+          ;;
+        java)
+          "${{ inputs.working_directory }}/gradlew" test --no-daemon
+          ;;
+      esac

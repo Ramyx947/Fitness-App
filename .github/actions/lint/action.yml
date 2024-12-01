@@ -1,0 +1,64 @@
+name: Lint Action
+
+description: 'Lint the specified service'
+inputs:
+  service:
+    description: 'Name of the service to lint'
+    required: true
+  language:
+    description: 'Programming language of the service'
+    required: true
+  working_directory:
+    description: 'Directory of the service'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+  - name: Set up Language Environment
+    shell: bash
+    run: |
+      case "${{ inputs.language }}" in
+        python)
+          echo "Python environment will be set up in the workflow."
+          ;;
+        java)
+          echo "Java environment will be set up in the workflow."
+          ;;
+        node)
+          echo "Node.js environment will be set up in the workflow."
+          ;;
+        *)
+          echo "Unsupported language: ${{ inputs.language }}"
+          exit 1
+          ;;
+      esac
+
+  - name: Install Dependencies
+    shell: bash
+    run: |
+      case "${{ inputs.language }}" in
+        node)
+          npm install --prefix "${{ inputs.working_directory }}"
+          ;;
+        python)
+          poetry install -C "${{ inputs.working_directory }}"
+          ;;
+        java)
+          "${{ inputs.working_directory }}/gradlew" build --no-daemon
+          ;;
+      esac
+
+  - name: Run Linter
+    shell: bash
+    run: |
+      case "${{ inputs.language }}" in
+        node)
+          npm run lint --prefix "${{ inputs.working_directory }}"
+          ;;
+        python)
+          poetry run flake8 "${{ inputs.working_directory }}"
+          ;;
+        java)
+          "${{ inputs.working_directory }}/gradlew" check --no-daemon
+          ;;
+      esac

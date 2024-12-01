@@ -1,6 +1,7 @@
-import pytest
 from unittest.mock import patch
+
 import mongomock
+import pytest
 
 
 @pytest.fixture(scope='session')

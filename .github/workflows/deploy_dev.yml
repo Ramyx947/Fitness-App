@@ -1,0 +1,255 @@
+name: Build and Deploy to Docker Hub
+
+on:
+  push:
+    branches:
+      - develop
+      - CI-workflow
+  pull_request:
+    branches:
+      - develop
+      - CI-workflow
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: false
+        default: 'develop'
+
+jobs:
+  lint:
+    name: Run Linting
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ["frontend", "activity-tracking", "analytics", "recipes"]
+    steps:
+      - name: Lint Service
+        uses: ./.github/actions/lint
+        with:
+          service: ${{ matrix.service }}
+          language: ${{ matrix.language }}
+          working_directory: ${{ matrix.working_directory }}
+  # lint:
+  #   name: Run Linting
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       service: ["frontend", "activity-tracking", "analytics", "recipes"]
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
+
+  #     - name: Set Service Variables
+  #       run: |
+  #         case "${{ matrix.service }}" in
+  #           frontend)
+  #             echo "language=node" >> $GITHUB_ENV
+  #             echo "working_directory=frontend" >> $GITHUB_ENV
+  #             ;;
+  #           activity-tracking)
+  #             echo "language=node" >> $GITHUB_ENV
+  #             echo "working_directory=activity-tracking" >> $GITHUB_ENV
+  #             ;;
+  #           analytics)
+  #             echo "language=python" >> $GITHUB_ENV
+  #             echo "working_directory=analytics" >> $GITHUB_ENV
+  #             ;;
+  #           recipes)
+  #             echo "language=python" >> $GITHUB_ENV
+  #             echo "working_directory=recipes" >> $GITHUB_ENV
+  #             ;;
+  #         esac
+
+  #     - name: Set up Python
+  #       if: ${{ env.language == 'python' }}
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: '3.8'
+
+  #     - name: Install Poetry (if using Python)
+  #       if: ${{ env.language == 'python' }}
+  #       run: |
+  #         curl -sSL https://install.python-poetry.org | python3 -
+  #         echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+  #     - name: Regenerate poetry.lock (if missing or corrupted)
+  #       if: ${{ env.language == 'python' && !hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
+  #       run: |
+  #         cd ${{ github.workspace }}/${{ env.working_directory }}
+  #         poetry lock --no-update
+
+  #     - name: Cache Dependencies
+  #       if: ${{ env.language == 'node' }}
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: ${{ env.working_directory }}/node_modules
+  #         key: ${{ runner.os }}-node-${{ hashFiles(format('{0}/package-lock.json', env.working_directory)) }}
+      
+  #     - name: Cache Poetry
+  #       if: ${{ env.language == 'python' && hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: ~/.cache/pypoetry
+  #         key: ${{ runner.os }}-poetry-${{ hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
+      
+  #     - name: Set up Language Environment and Run Lint
+  #       run: |
+  #         cd ${{ github.workspace }}/${{ env.working_directory }}
+  #         case "${{ env.language }}" in
+  #           node)
+  #             echo "Setting up Node.js environment..."
+  #             npm install
+  #             npm run lint
+  #             ;;
+  #           python)
+  #             echo "Setting up Python environment..."
+  #             poetry lock --no-update
+  #             poetry install
+  #             poetry run flake8 .
+  #             ;;
+  #         esac
+  unit_tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ["frontend", "activity-tracking", "analytics", "recipes"]
+    steps:
+      - name: Run Unit Tests for Service
+        uses: ./.github/actions/unit-tests
+        with:
+          service: ${{ matrix.service }}
+          language: ${{ matrix.language }}
+          working_directory: ${{ matrix.working_directory }}
+  # unit_tests:
+  #   name: Run Unit Tests
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       service: ["frontend", "activity-tracking", "analytics", "recipes"]
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
+
+  #     - name: Set Service Variables
+  #       run: |
+  #         case "${{ matrix.service }}" in
+  #           frontend)
+  #             echo "language=node" >> $GITHUB_ENV
+  #             echo "working_directory=frontend" >> $GITHUB_ENV
+  #             ;;
+  #           activity-tracking)
+  #             echo "language=node" >> $GITHUB_ENV
+  #             echo "working_directory=activity-tracking" >> $GITHUB_ENV
+  #             ;;
+  #           analytics)
+  #             echo "language=python" >> $GITHUB_ENV
+  #             echo "working_directory=analytics" >> $GITHUB_ENV
+  #             ;;
+  #           recipes)
+  #             echo "language=python" >> $GITHUB_ENV
+  #             echo "working_directory=recipes" >> $GITHUB_ENV
+  #             ;;
+  #         esac
+          
+  #     - name: Set up Python
+  #       if: ${{ env.language == 'python' }}
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: '3.8'
+
+  #     - name: Install Poetry (if using Python)
+  #       if: ${{ env.language == 'python' }}
+  #       run: |
+  #         curl -sSL https://install.python-poetry.org | python3 -
+  #         echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+  #     - name: Regenerate poetry.lock (if missing or corrupted)
+  #       if: ${{ env.language == 'python' && !hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
+  #       run: |
+  #         cd ${{ github.workspace }}/${{ env.working_directory }}
+  #         poetry lock --no-update
+
+  #     - name: Cache Dependencies
+  #       if: ${{ env.language == 'node' }}
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: ${{ env.working_directory }}/node_modules
+  #         key: ${{ runner.os }}-node-${{ hashFiles(format('{0}/package-lock.json', env.working_directory)) }}
+      
+  #     - name: Cache Poetry
+  #       if: ${{ env.language == 'python' && hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: ~/.cache/pypoetry
+  #         key: ${{ runner.os }}-poetry-${{ hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
+      
+  #     - name: Set up Language Environment and Run Tests
+  #       run: |
+  #         cd ${{ github.workspace }}/${{ env.working_directory }}
+  #         case "${{ env.language }}" in
+  #           node)
+  #             echo "Setting up Node.js environment and running tests..."
+  #             npm install
+  #             npm test
+  #             ;;
+  #           python)
+  #             echo "Setting up Python environment and running tests..."
+  #             poetry lock --no-update
+  #             poetry install
+  #             poetry run pytest
+  #             ;;
+  #         esac
+
+  build_and_deploy:
+    name: Build and Deploy to Docker Hub
+    needs:
+      - lint
+      - unit_tests
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: ${{ secrets.NODE_ENV_DEV }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # following best practices of generating the env variables withing the runner for: security and consistency
+      - name: Generate .env file
+        run: |
+          echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
+          echo "MONGO_DB_ACTIVITY=${{ secrets.MONGO_DB_ACTIVITY }}" >> .env
+          echo "MONGO_DB_ANALYTICS=${{ secrets.MONGO_DB_ANALYTICS }}" >> .env
+          echo "MONGO_DB_RECIPES=${{ secrets.MONGO_DB_RECIPES }}" >> .env
+          echo "MONGO_DB_AUTHSERVICE=${{ secrets.MONGO_DB_AUTHSERVICE_DEV }}" >> .env
+          echo "MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }}" >> .env
+          echo "MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}" >> .env
+          echo "REACT_APP_ACTIVITY_URL=${{ secrets.REACT_APP_ACTIVITY_URL }}" >> .env
+          echo "REACT_APP_ANALYTICS_URL=${{ secrets.REACT_APP_ANALYTICS_URL }}" >> .env
+          echo "REACT_APP_RECIPES_URL=${{ secrets.REACT_APP_RECIPES_URL }}" >> .env
+          echo "REACT_APP_AUTHSERVICE_URL=${{ secrets.REACT_APP_AUTHSERVICE_URL }}" >> .env
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          install: true
+          version: latest
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Docker Images for All Services
+        run: |
+          SERVICES=("frontend" "activity-tracking" "authservice" "analytics" "recipes")
+          for service in "${SERVICES[@]}"; do
+            echo "Building and pushing Docker image for $service"
+            docker buildx build --push --cache-from type=registry,ref=$DOCKER_USERNAME/$service:latest \
+              --cache-to type=inline,mode=max \
+              -t $DOCKER_USERNAME/$service:latest \
+              -f ./$service/Dockerfile ./$service || exit 1
+          done
