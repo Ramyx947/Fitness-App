@@ -1,0 +1,258 @@
+# ––––––––––––––––––––––––––––––––
+# This workflow builds and pushes Docker images to Docker Hub.
+# It runs automatically when there is a push to the develop branch.
+# Docker images are built and pushed only for services that have changes in their directories.
+# It also checks commit messages for the service's name to determine if the service needs rebuilding.
+# Ensure that DOCKER_USERNAME and DOCKER_PASSWORD are added to GitHub secrets for authentication.
+# ––––––––––––––––––––––––––––––––
+name: Test Deploy to Docker Hub
+
+on:
+  push:
+    branches:
+      - develop
+      - CI-workflow
+  pull_request:
+    branches:
+      - develop
+      - CI-workflow
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: false
+        default: 'develop'
+      services:
+        description: 'Comma-separated list of services to build and deploy'
+        required: false
+      run_lint:
+        description: 'Run Lint Job (true/false)'
+        required: false
+        default: 'true'
+      run_unit_tests:
+        description: 'Run Unit Tests Job (true/false)'
+        required: false
+        default: 'true'
+      run_build_and_deploy:
+        description: 'Run Build and Deploy Job (true/false)'
+        required: false
+        default: 'true'
+
+
+jobs:
+  determine_changes:
+    name: Determine Changed Services
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.set_services.outputs.services }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Determine Changed Services
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          base: develop
+          filters: |
+            frontend:
+              - 'frontend/**'
+            activity-tracking:
+              - 'activity-tracking/**'
+            authservice:
+              - 'authservice/**'
+            analytics:
+              - 'analytics/**'
+            recipes:
+              - 'recipes/**'
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Set Services Output
+        id: set_services
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.services }}" ]; then
+            if [ -z "${{ github.event.inputs.services }}" ]; then
+              SERVICES_JSON='[]'
+            else
+              SERVICES_JSON=$(echo "${{ github.event.inputs.services }}" | tr ',' '\n' | jq -R . | jq -s .)
+            fi
+          else
+            SERVICES_JSON='${{ steps.filter.outputs.changes }}'
+          fi
+          echo "services<<EOF" >> $GITHUB_OUTPUT
+          echo "$SERVICES_JSON" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Debug Services Output
+        run: |
+          echo "Changed services: ${{ steps.set_services.outputs.services }}"
+
+
+  lint:
+    name: Run Linting
+    needs: determine_changes
+    if: ${{ needs.determine_changes.outputs.services != '[]' && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_lint == 'true') }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.determine_changes.outputs.services) }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set Service Variables
+        run: |
+          case "${{ matrix.service }}" in
+            frontend)
+              echo "language=node" >> $GITHUB_ENV
+              echo "working_directory=frontend" >> $GITHUB_ENV
+              ;;
+            activity-tracking)
+              echo "language=node" >> $GITHUB_ENV
+              echo "working_directory=activity-tracking" >> $GITHUB_ENV
+              ;;
+            analytics)
+              echo "language=python" >> $GITHUB_ENV
+              echo "working_directory=analytics" >> $GITHUB_ENV
+              ;;
+            recipes)
+              echo "language=python" >> $GITHUB_ENV
+              echo "working_directory=recipes" >> $GITHUB_ENV
+              ;;
+            authservice)
+              echo "language=java" >> $GITHUB_ENV
+              echo "working_directory=authservice" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "Unsupported service: ${{ matrix.service }}"
+              exit 1
+              ;;
+          esac
+
+      - name: Run Lint
+        uses: ./.github/actions/lint
+        with:
+          service: ${{ matrix.service }}
+          language: ${{ env.language }}
+          working_directory: ${{ env.working_directory }}
+
+  unit_tests:
+    name: Run Unit Tests
+    needs: determine_changes
+    if: ${{ needs.determine_changes.outputs.services != '[]' && (github.event_name != 'workflow_dispatch' || github.event.inputs.run_lint == 'true') }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.determine_changes.outputs.services) }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set Service Variables
+        run: |
+          case "${{ matrix.service }}" in
+            frontend)
+              echo "language=node" >> $GITHUB_ENV
+              echo "working_directory=frontend" >> $GITHUB_ENV
+              ;;
+            activity-tracking)
+              echo "language=node" >> $GITHUB_ENV
+              echo "working_directory=activity-tracking" >> $GITHUB_ENV
+              ;;
+            analytics)
+              echo "language=python" >> $GITHUB_ENV
+              echo "working_directory=analytics" >> $GITHUB_ENV
+              ;;
+            recipes)
+              echo "language=python" >> $GITHUB_ENV
+              echo "working_directory=recipes" >> $GITHUB_ENV
+              ;;
+            authservice)
+              echo "language=java" >> $GITHUB_ENV
+              echo "working_directory=authservice" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "Unsupported service: ${{ matrix.service }}"
+              exit 1
+              ;;
+          esac
+
+      - name: Run Unit Tests
+        uses: ./.github/actions/unit-tests
+        with:
+          service: ${{ matrix.service }}
+          language: ${{ env.language }}
+          working_directory: ${{ env.working_directory }}
+
+  
+  build_and_deploy:
+    name: Build and Deploy to Docker Hub
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: ${{ secrets.NODE_ENV_DEV }}
+      MONGO_DB: ${{ secrets.MONGO_DB_DEV }}
+      MONGO_URI: ${{ secrets.MONGO_URI }}
+      SPRING_DATA_MONGODB_DATABASE: ${{ secrets.SPRING_DATA_MONGODB_DATABASE_DEV }}
+      MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
+      MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      REACT_APP_API_URL: http://localhost:8080
+      MONGO_DB_AUTH_DATABASE: authservice-dev
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          install: true
+          version: latest
+
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+      
+      - name: Verify Docker Compose Version
+        run: |
+          docker-compose --version
+          COMPOSE_VERSION=$(docker-compose version --short)
+          echo "Docker Compose version: $COMPOSE_VERSION"
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ hashFiles('docker-compose.yml', 'docker-compose.develop.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+    
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Build and push Docker images for all services
+      - name: Build and Push Docker Images for All Services
+        env:
+          SERVICES: "frontend activity-tracking"
+        run: |
+          for service in $SERVICES; do
+            echo "Building and pushing Docker image for $service"
+            
+            # Build the Docker image
+            docker build -t $DOCKER_USERNAME/$service:latest -f ./$service/Dockerfile ./$service
+            
+            # Build and push the Docker image
+            docker buildx build --push -t $DOCKER_USERNAME/$service:latest -f ./$service/Dockerfile ./$service
+          done
