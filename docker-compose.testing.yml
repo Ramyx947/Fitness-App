@@ -1,0 +1,124 @@
+# --------------------------------------
+# Docker Compose configuration for the testing branch.
+# Used for builds and testing, with real-time code updates.
+# Overrides default configuration settings to suit the testing environment.
+# --------------------------------------
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=${NODE_ENV_DEV}
+      - REACT_APP_API_URL=${REACT_APP_API_URL}
+    ports:
+      - "3000:80"
+    volumes:  # Mounts local directortories into the container for real-time code updates (no need to refresh to see changes)
+      - ./frontend/build:/app/build
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - app-network
+    healthcheck: # Ensures that the frontend service is fully up and running before Cypress starts executing tests
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  activity-tracking:
+    build:
+      context: ./activity-tracking
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=${NODE_ENV_DEV}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB=${MONGO_DB_DEV}
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+    volumes:
+      - ./activity-tracking:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5300/healthcheck"]
+      interval: 10s
+      retries: 5
+
+  analytics:
+    build:
+      context: ./analytics
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=${NODE_ENV_DEV}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB=${MONGO_DB_DEV}
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+    volumes:
+      - ./analytics:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  recipes:
+      build:
+        context: ./recipes
+        dockerfile: Dockerfile
+      environment:
+      - NODE_ENV=${NODE_ENV_DEV}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB=${MONGO_DB_DEV}
+      depends_on:
+        - mongodb
+      networks:
+        - app-network
+      volumes:
+        - ./recipes:/app
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:8080/healthcheck"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
+
+  authservice:
+    build:
+      context: ./authservice
+      dockerfile: Dockerfile
+    environment:
+      # - SPRING_DATA_MONGODB_DATABASE=${MONGO_DB_AUTH_DATABASE_DEV}
+      - SPRING_DATA_MONGODB_DATABASE=authservice-dev
+      - SPRING_DATA_MONGODB_URI=${MONGO_URI}
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+    volumes:
+        - ./authservice:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  mongodb:
+      image: mongo:latest
+      environment:
+        - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+        - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      volumes:
+        - mongodbdata:/data/db
+      networks:
+        - app-network
+
+networks:
+  app-network:
+    driver: bridge # all services using app-network communicate over a bridge network
+
+volumes:
+  mongodbdata:

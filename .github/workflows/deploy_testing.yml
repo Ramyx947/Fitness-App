@@ -23,7 +23,7 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: 'Branch to deploy'
+        description: 'Branch to deploy to testing'
         required: false
         default: 'testing'
       services:
