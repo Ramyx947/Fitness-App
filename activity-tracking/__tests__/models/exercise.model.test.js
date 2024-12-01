@@ -30,7 +30,7 @@ describe('Exercise Model Test Suite', () => {
       exerciseType: 'Swimming',
       description: 'Morning swim',
       duration: 30,
-      date: new Date('2024-01-01T10:00:00Z'),
+      date: new Date('2024-01-01T08:00:00Z'),
     });
 
     const savedExercise = await validExercise.save();
@@ -41,7 +41,7 @@ describe('Exercise Model Test Suite', () => {
       exerciseType: 'Swimming',
       description: 'Morning swim',
       duration: 30,
-      date: new Date('2024-01-01T10:00:00Z'),
+      date: new Date('2024-01-01T08:00:00Z'),
     }, true); // isDatabase = true
   });
 
