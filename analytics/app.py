@@ -5,7 +5,7 @@ from pymongo import MongoClient
 from flask_cors import CORS
 from bson import json_util
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from ariadne import load_schema_from_path, make_executable_schema, graphql_sync, QueryType
 from prometheus_flask_exporter import PrometheusMetrics
 
@@ -20,9 +20,10 @@ title = "Weekly Exercise Tracker Statistics"
 heading = "MLA Flask Microservice"
 user = "testuser"
 mongo_uri = os.getenv('MONGO_URI')
+mongo_db = os.getenv('MONGO_DB')
 
 client = MongoClient(mongo_uri)
-db = client.test
+db = client[mongo_db]
 
 metrics.info('app_info', 'Application info', version='1.0.3')
 
@@ -209,7 +210,7 @@ def weekly_user_stats(user, start, end):
                 "username": user,
                 "date": {
                     "$gte": start_date,
-                    "$lte": end_date
+                    "$lte": end_date + timedelta(days=1)
                 }
             }
         },
