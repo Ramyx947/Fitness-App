@@ -8,6 +8,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
+
 def test_graphql_stats_query(client, mock_mongo):
     # Insert mock data into the shared mock MongoDB
     stats_collection = mock_mongo['test'].exercises

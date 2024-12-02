@@ -43,6 +43,11 @@ If VS does not find poetry's virtual environment, the packages in the Python scr
 #### Running the whole test suite
 - `poetry run pytest`
 
+#### Running the whole test suite incl coverage report
+- `poetry run pytest --cov`
+
+This uses the package `pytest-cov`
+
 #### Running specific test file with verbose output
 - `poetry run pytest tests/test_analytics.py -v`
 
