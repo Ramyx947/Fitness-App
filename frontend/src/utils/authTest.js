@@ -14,7 +14,7 @@
 
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import MockAdapter from 'axios-mock-adapter';
-import { authServiceApi } from '../src/api.js';
+import { authServiceApi } from '../api.js';
 
 export const setupAuthMock = () => new MockAdapter(authServiceApi);
 

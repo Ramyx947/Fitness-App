@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderWithRouter, screen } from '../../../utils/test-utils.js';
+import { renderWithRouter, screen } from '../../utils/test-utils.js';
 import Signup from '../../../src/components/signup.js';
 import {
   setupAuthMock,

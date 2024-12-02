@@ -102,12 +102,10 @@ Build and run the containerized frontend:
 
 ### Running the Test Suite for Specific Environments
 
-- `npm run test:dev`
-- `npm run test:qa`
-- `npm run test:main`
+- `npm run test`
 
 ### Run specific test 
--`npm run test:dev src/__tests__/components/<test-file-name>`
+-`npm run test src/__tests__/components/<test-file-name>`
 
 #### Clear jest cache
 -`npx jest --clearCache`

@@ -5,12 +5,12 @@
  * Where It's Used: Used in `Login` and `Signup` components tests
  */
 import React from 'react';
-import { renderWithRouter } from '../utils/test-utils.js';
+import { renderWithRouter } from './test-utils.js';
 import {
   fillAndSubmitForm,
   expectErrorMessage,
   expectCallbackNotCalled,
-} from './authTest';
+} from './authTest.js';
 
 export const testForScriptInjection = async ({ component, onActionMock, submitButtonLabel }) => {
     renderWithRouter(React.cloneElement(component, { onAction: onActionMock }));
