@@ -1,79 +1,73 @@
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 import { Button, Form, Alert } from 'react-bootstrap';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { signupUser } from '../api.js';
+import { getErrorMessage } from '../../utils/errorHandle.js';
 
 const Signup = ({ onSignup }) => {
-    const [formData, setFormData] = useState({ username: '', password: '' });
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prevData) => ({ ...prevData, [name]: value }));
-    };
 
     const handleSignup = async (e) => {
         e.preventDefault();
-        setError('');
 
         try {
-            const response = await axios.post('http://localhost:8080/api/auth/signup', formData);
-
-            if (response.data === 'User registered successfully!') {
-                console.log('User registered successfully');
-                onSignup(formData.username);
-            } else {
-                setError(response.data);
-            }
-        } catch (error) {
-            console.error('Error during registration', error);
-            setError(error.response?.data || 'An error occurred during registration. Please try again.');
+            await signupUser({ username, password });
+            onSignup(username); // Inform App.js of successful signup
+            // Reset the form values on successful submission
+            setUsername('');
+            setPassword('');
+        } catch (err) {
+            const errorMsg = getErrorMessage(err, 'Signup');
+            setError(errorMsg);
         }
     };
 
     return (
-        <div>
+        <div className="signup-container">
             {error && <Alert variant="danger">{error}</Alert>}
 
             <Form onSubmit={handleSignup}>
-                <Form.Group controlId="formBasicEmail">
+                <Form.Group controlId="formUsername">
                     <Form.Label>Username</Form.Label>
                     <Form.Control
                         type="text"
                         placeholder="Enter username"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleInputChange}
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        aria-label="Username"
                         required
                     />
                 </Form.Group>
 
-                <Form.Group controlId="formBasicPassword">
+                <Form.Group controlId="formPassword">
                     <Form.Label>Password</Form.Label>
                     <Form.Control
                         type="password"
                         placeholder="Password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleInputChange}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        aria-label="Password"
                         required
                     />
                 </Form.Group>
 
                 <Button variant="primary" type="submit" style={{ marginTop: '20px' }}>
-                    Signup
+                    Sign Up
                 </Button>
             </Form>
+
             <p className="mt-3">
-                Already have an account? <Link to="/login">Login</Link>
+                {"Already have an account?"} <Link to="/login">Login</Link>
             </p>
         </div>
     );
 };
 
-export default Signup;
-
 Signup.propTypes = {
     onSignup: PropTypes.func.isRequired,
 };
+
+export default Signup;
