@@ -1,4 +1,5 @@
 import traceback
+import logging
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from pymongo import MongoClient
@@ -8,6 +9,10 @@ import os
 from datetime import datetime, timedelta
 from ariadne import load_schema_from_path, make_executable_schema, graphql_sync, QueryType
 from prometheus_flask_exporter import PrometheusMetrics
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # set up flask app
 app = Flask(__name__)
@@ -93,6 +98,7 @@ def resolve_filteredStats(*_, name=None):
             "results": loadedStats
         }
     except Exception as error:
+        logger.error(f"Error resolving filteredStats: {error}")
         payload = {
             "success": False,
             "errors": [str(error)]
@@ -110,6 +116,7 @@ def resolve_weekly(_, info, user, start, end):
             "results": weeklyStats
         }
     except Exception as error:
+        logger.error(f"Error resolving weekly stats: {error}")
         payload = {
             "success": False,
             "errors": [str(error) if str(error) else "Could not retrieve weekly statistics for the specified time period for the current user."],
@@ -252,7 +259,7 @@ schema = make_executable_schema(type_defs, query)
 
 @app.errorhandler(Exception)
 def handle_error(e):
-    app.logger.error(f"An error occurred: {e}")
+    logger.error(f"An error occurred: {e}")
     traceback.print_exc()
     return jsonify(error="An internal error occurred"), 500
 

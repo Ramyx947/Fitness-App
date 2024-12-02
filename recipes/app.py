@@ -1,10 +1,15 @@
 import os
+import logging
 from ariadne import MutationType, QueryType, graphql_sync, load_schema_from_path, make_executable_schema
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from pymongo import MongoClient
 from prometheus_flask_exporter import PrometheusMetrics
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 metrics = PrometheusMetrics(app)
@@ -32,26 +37,26 @@ mutation = MutationType()
 @query.field("recipes")
 def resolve_recipes(_, info):
     try:
-        print("Resolver called")
+        logger.info("Resolver called")
         # Fetch recipes from the database
         recipes_cursor = db.recipes.find()
         recipes_list = []
         for recipe in recipes_cursor:
-            print(f"Found recipe: {recipe}")
+            logger.info(f"Found recipe: {recipe}")
             recipes_list.append({
                 "recipeName": recipe.get("recipeName"),
                 "ingredients": recipe.get("ingredients"),
                 "calories": recipe.get("calories"),
                 "nutrients": recipe.get("nutrients")
             })
-        print("Number of recipes found:", len(recipes_list))
+        logger.info("Number of recipes found:", len(recipes_list))
         payload = {
             "success": True,
             "results": recipes_list
         }
-        print("Resolver Payload:", payload)
+        logger.info("Resolver Payload:", payload)
     except Exception as error:
-        print(f"Error: {error}")
+        logger.error(f"Error: {error}")
         payload = {
             "success": False,
             "results": []
@@ -62,7 +67,7 @@ def resolve_recipes(_, info):
 @mutation.field("addRecipe")
 def add_recipe(_, info, recipe):
     try:
-        print("Add recipe mutation called")
+        logger.info("Add recipe mutation called")
         # Insert the recipe into the database
         db.recipes.insert_one(recipe)
 
@@ -76,21 +81,20 @@ def add_recipe(_, info, recipe):
             "message": "Recipe added successfully",
             "recipe": dbRecipe
         }
+        logger.info("Resolver Payload:", payload)
     except Exception as error:
-        print(f"Error: {error}")
+        logger.error(f"Error: {error}")
         payload = {
             "success": False,
             "message": "Failed to add the recipe"
         }
-
-    print(payload)
     return payload
 
 
 @mutation.field("removeRecipe")
 def remove_recipe(_, info, recipe):
     try:
-        print("Add recipe mutation called")
+        logger.info("Add recipe mutation called")
         # Insert the recipe into the database
         db.recipes.delete_one(recipe)
 
@@ -104,14 +108,13 @@ def remove_recipe(_, info, recipe):
             "message": "Recipe removed successfully",
             "recipe": recipe
         }
+        logger.info("Resolver Payload:", payload)
     except Exception as error:
-        print(f"Error: {error}")
+        logger.error(f"Error: {error}")
         payload = {
             "success": False,
             "message": "Failed to remove the recipe"
         }
-
-    print(payload)
     return payload
 
 
@@ -119,7 +122,7 @@ def remove_recipe(_, info, recipe):
 schema_directory = os.path.dirname(os.path.abspath(__file__))
 schema_path = os.path.join(schema_directory, "schema.graphql")
 type_defs = load_schema_from_path(schema_path)
-print("Type Definitions Loaded:", type_defs)
+logger.info("Type Definitions Loaded:", type_defs)
 
 schema = make_executable_schema(type_defs, query, mutation)
 
@@ -127,7 +130,7 @@ schema = make_executable_schema(type_defs, query, mutation)
 # Set up the GraphQL server
 @app.route('/api/graphql', methods=['POST'])
 def graphql_server():
-    print("Received a POST request")
+    logger.info("Received a POST request")
     data = request.get_json()
     success, result = graphql_sync(
         schema,
@@ -148,7 +151,7 @@ with open(GRAPHQL_PLAYGROUND_HTML_FP, 'r', encoding='utf-8') as file:
 # graphql playground for health check
 @app.route('/api/graphql', methods=['GET'])
 def graphql_playground():
-    print("Received a GET request")
+    logger.info("Received a GET request")
     return html_content, 200
 
 
