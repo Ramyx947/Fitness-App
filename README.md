@@ -148,3 +148,9 @@ db.users.find()
 
 ## Deployment
 The application is containerized using Docker and can be deployed on any platform that supports Docker containers. For AWS deployment, a GitHub Actions pipeline is configured for CI/CD.
+
+### Environment variables for deployment
+
+Copy the file `.env.dist` into the root of this repo and name it `.env`. 
+Then set all the values required for the specific environment. For example, if you intend to run the GHA CICD pipeline for the testing branch, ensure that all testing-related environment variable values are set. 
+See the Confluence page [here](https://ramonamironescu.atlassian.net/wiki/spaces/MFA/pages/22970369/MongoDB+Database+Table) for details on the env variables and how to set the values. 
