@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderWithRouter, screen } from '../../utils/test-utils.js';
+import { renderWithRouter, screen } from '../../../src/utils/test-utils.js';
 import Signup from '../../../src/components/signup.js';
 import {
   setupAuthMock,
@@ -7,7 +7,7 @@ import {
   expectErrorMessage,
   expectCallbackNotCalled,
   expectCallbackCalledWith,
-} from '../../../utils/authTest';
+} from '../../../src/utils/authTest';
 // import { testForScriptInjection } from '../../../utils/securityTest.js'; // to be used for input validation tests
 
 describe('Signup Component', () => {
