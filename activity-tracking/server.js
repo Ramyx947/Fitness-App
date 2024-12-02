@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const promClient = require('prom-client');
+const helmet = require("helmet");
 require('dotenv').config(); 
 const config = require('./config.json');
 const corsConfig = require('./config');
@@ -34,6 +35,7 @@ const corsOptions = {
 };
 
 // Middleware setup
+app.use(helmet());
 app.use(cors(corsOptions));
 app.use(express.json());
 
