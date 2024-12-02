@@ -10,7 +10,7 @@ import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { getErrorMessage } from '../utils/errorHandle.js';
+import { getErrorMessage } from '../../utils/errorHandle.js';;
 
 const TrackExercise = ({ currentUser, trackExercise }) => {
     const [state, setState] = useState({

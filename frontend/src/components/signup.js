@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button, Form, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { signupUser } from '../api.js';
-import { getErrorMessage } from '../utils/errorHandle.js';
+import { getErrorMessage } from '../../utils/errorHandle.js';
 
 const Signup = ({ onSignup }) => {
     const [username, setUsername] = useState('');
