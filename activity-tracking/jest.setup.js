@@ -2,6 +2,8 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
 const { TextEncoder, TextDecoder } = require('util');
 
+jest.setTimeout(30000);
+
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
