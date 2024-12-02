@@ -13,7 +13,8 @@
     "lint": "npx eslint src/**.js",
     "lint:fix": "npm run lint -- --fix",
     "format": "prettier --write src/**.js",
-    "format:check": "prettier ./src/**.js --check"
+    "format:check": "prettier ./src/**.js --check",
+    "security:scan": "npx eslint . --config eslint.config.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.5.0",
@@ -34,7 +35,6 @@
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.0"
   },
-
   "browserslist": {
     "production": [
       ">0.2%",
@@ -60,6 +60,7 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-react": "^7.37.1",
+    "eslint-plugin-security": "^3.0.1",
     "globals": "^15.11.0",
     "jest": "^29.7.0"
   }
