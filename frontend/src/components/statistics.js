@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './statistics.css';
 
-const Statistics = ({ currentUser }) => {
+const Statistics = ({ currentUser, fetchStatistics }) => {
     const [data, setData] = useState([]);
     const [errors, setErrors] = useState([]);
 
@@ -30,10 +30,7 @@ const Statistics = ({ currentUser }) => {
             };
 
             try {
-                const response = await axios.post('http://localhost:5050/api/graphql', {
-                    query,
-                    variables,
-                });
+                const response = await fetchStatistics(variables);
 
                 // Ensure response data is defined and has the expected structure
                 const statsResult = response.data?.data?.filteredStats;
@@ -88,8 +85,8 @@ const Statistics = ({ currentUser }) => {
     );
 };
 
-export default Statistics;
-
 Statistics.propTypes = {
     currentUser: PropTypes.string.isRequired,
+    fetchStatistics: PropTypes.func.isRequired,
 };
+export default Statistics;
