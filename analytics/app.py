@@ -1,14 +1,16 @@
 from dotenv import load_dotenv
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, jsonify, request
 from pymongo import MongoClient
-from flask_pymongo import PyMongo
 from flask_cors import CORS
-from urllib.parse import quote_plus
 from bson import json_util
 import traceback
 import logging
 import os
 from datetime import datetime, timedelta
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}},
@@ -24,9 +26,14 @@ db = client[mongo_db]
 
 @app.route('/')
 def index():
-    exercises = db.exercises.find()
-    exercises_list = list(exercises)
-    return json_util.dumps(exercises_list)
+    try:
+        exercises = db.exercises.find()
+        exercises_list = list(exercises)
+        logger.info("Fetched exercises list")
+        return json_util.dumps(exercises_list)
+    except Exception as e:
+        logger.error(f"Error fetching exercises: {e}")
+        return jsonify(error="An internal error occurred"), 500
 
 
 @app.route('/stats')
@@ -61,8 +68,13 @@ def stats():
         }
     ]
 
-    stats = list(db.exercises.aggregate(pipeline))
-    return jsonify(stats=stats)
+    try:
+        stats = list(db.exercises.aggregate(pipeline))
+        logger.info("Fetched stats")
+        return jsonify(stats=stats)
+    except Exception as e:
+        logger.error(f"Error fetching stats: {e}")
+        return jsonify(error="An internal error occurred"), 500
 
 
 @app.route('/stats/<username>', methods=['GET'])
@@ -99,9 +111,12 @@ def user_stats(username):
             }
         }
     ]
-
-    stats = list(db.exercises.aggregate(pipeline))
-    return jsonify(stats=stats)
+    try:
+        stats = list(db.exercises.aggregate(pipeline))
+        return jsonify(stats=stats)
+    except Exception as e:
+        logger.error(f"Error fetching stats for user {username}: {e}")
+        return jsonify(error="An internal error occurred"), 500
 
 
 @app.route('/stats/weekly/', methods=['GET'])
@@ -115,9 +130,9 @@ def weekly_user_stats():
         start_date = datetime.strptime(start_date_str, date_format)
         end_date = datetime.strptime(end_date_str, date_format) + timedelta(days=1)  # Include the whole end day
 
-        logging.info(f"Fetching weekly stats for user: {username} from {start_date} to {end_date}")
+        logger.info(f"Fetching weekly stats for user: {username} from {start_date} to {end_date}")
     except Exception as e:
-        logging.error(f"Error parsing dates: {e}")
+        logger.error(f"Error parsing dates: {e}")
         return jsonify(error="Invalid date format"), 400
 
     pipeline = [
@@ -149,12 +164,12 @@ def weekly_user_stats():
 
     try:
         stats = list(db.exercises.aggregate(pipeline))
+        logger.info(f"Fetched weekly stats for user: {username}")
         return jsonify(stats=stats)
     except Exception as e:
-        current_app.logger.error(f"An error occurred while querying MongoDB: {e}")
+        logger.error(f"An error occurred while querying MongoDB: {e}")
         traceback.print_exc()
         return jsonify(error="An internal error occurred"), 500
-
 
 
 if __name__ == "__main__":
