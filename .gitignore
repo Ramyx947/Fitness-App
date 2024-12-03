@@ -2,8 +2,6 @@
 
 # env files
 .env
-analytics/.env
-recipes/.env
 
 # dependencies
 /node_modules
