@@ -148,3 +148,16 @@ db.users.find()
 
 ## Deployment
 The application is containerized using Docker and can be deployed on any platform that supports Docker containers. For AWS deployment, a GitHub Actions pipeline is configured for CI/CD.
+
+## Monitoring
+
+We use prometheus to collect, store and query metrics from the microservices in the application. 
+Grafana is used as the visualization platform that integrated Promtheus to create dashboard for monitoring and analyzing the collected metrics. 
+
+To access the dashboard do the following:
+- `docker compose up --build`
+- `http://localhost:8081/login`
+- `username=admin, password=cfgmla23`
+
+In the top left corner, click on the navigation bar, then click on Dashboard. 
+You will see a dashboard called Application Dashboard.
