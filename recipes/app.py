@@ -13,11 +13,32 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 metrics = PrometheusMetrics(app)
-CORS(
-    app,
-    resources={r"/*": {"origins": "*"}},
-    methods=["GET", "HEAD", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"]
-)
+
+# Set up CORS
+env = os.getenv('NODE_ENV', 'development')
+print(env)
+
+allowed_origins = {
+    "development": [
+        "http://localhost:3000",  # Frontend
+        "http://localhost:5300",  # Activity-tracking
+        "http://localhost:5051",  # Recipes
+        "http://localhost:8080",  # Auth service
+        "http://localhost:50"  # CI pipeline port
+    ],
+    "production": [
+        "https://fitapp.co.uk"  # Main production domain
+    ]
+}
+
+CORS(app, resources={
+    r"/api/*": {
+        "origins": allowed_origins.get(env, []),
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Allowed HTTP methods
+        "allow_headers": ["Content-Type", "Authorization"],  # Allowed headers
+        "supports_credentials": True  # Allow credentials (cookies, authorization headers, etc.)
+    }
+})
 
 load_dotenv()
 mongo_uri = os.getenv('MONGO_URI')

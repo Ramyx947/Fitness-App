@@ -3,7 +3,7 @@ import logging
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from pymongo import MongoClient
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from bson import json_util
 import os
 from datetime import datetime, timedelta
@@ -16,9 +16,35 @@ logger = logging.getLogger(__name__)
 
 # set up flask app
 app = Flask(__name__)
+CORS(app, supports_credentials=True)
 metrics = PrometheusMetrics(app)
-CORS(app, resources={r"/*": {"origins": "*"}},
-     methods="GET,HEAD,POST,OPTIONS,PUT,PATCH,DELETE")
+
+# # Set up CORS
+# env = os.getenv('NODE_ENV', 'development')
+
+# allowed_origins = {
+#     "development": [
+#         "http://localhost:3000",  # Frontend
+#         "http://localhost:5300",  # Activity-tracking
+#         "http://localhost:5051",  # Recipes
+#         "http://localhost:8080",  # Auth service
+#         "http://localhost:50"  # CI pipeline port
+#     ],
+#     "production": [
+#         "https://fitapp.co.uk"  # Main production domain
+#     ]
+# }
+
+# cors = CORS(app, resources={
+#     r"/api/*": {
+#         "origins": allowed_origins.get(env, []),
+#         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Allowed HTTP methods
+#         "allow_headers": ["Content-Type", "Authorization"],  # Allowed headers
+#         "supports_credentials": True  # Allow credentials (cookies, authorization headers, etc.)
+#     }
+# })
+
+
 
 load_dotenv()
 title = "Weekly Exercise Tracker Statistics"
@@ -38,6 +64,7 @@ type_defs = load_schema_from_path("schema.graphql")
 
 
 # set up the graphql server
+@cross_origin()
 @app.route('/api/graphql', methods=['POST'])
 def graphql_server():
     data = request.get_json()
@@ -58,13 +85,15 @@ with open(GRAPHQL_PLAYGROUND_HTML_FP, 'r', encoding='utf-8') as file:
 
 
 # graphql playground for health check
+@cross_origin()
 @app.route('/api/graphql', methods=['GET'])
 def graphql_playground():
     return html_content, 200
 
 
 # rest endpoint serving as a health check and welcome page
-@app.route('/')
+@cross_origin()
+@app.route('/', methods=['GET'])
 def index():
     exercises = db.exercises.find()
     exercises_list = list(exercises)
@@ -201,7 +230,8 @@ def user_stats(username):
     return stats
 
 
-# rest endpoint for weekly to compare newly implemented graphql endpoint to
+# rest endpoint for weekly to compare to newly implemented graphql endpoint
+@cross_origin()
 @app.route('/stats/weekly/', methods=['GET'])
 def weekly_user_stats(user, start, end):
     print(f"Fetching weekly stats for user: {user}, time period: {start} - {end} ")
