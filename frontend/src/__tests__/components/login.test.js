@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import Login from '../../components/login';
+import Login from '../../../src/components/login';
 import axios from "axios";
 import MockAdapter from "axios-mock-adapter";
 

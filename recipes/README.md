@@ -48,3 +48,6 @@ If VS does not find poetry's virtual environment, the packages in the Python scr
 
 ### Running lint with Flake8
 - `poetry run flake8`
+
+### Run Static Security Analysis with Bandit
+- `bandit -r .`

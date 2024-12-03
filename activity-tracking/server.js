@@ -2,8 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const promClient = require('prom-client');
+const helmet = require("helmet");
 require('dotenv').config(); 
 const config = require('./config.json');
+const corsConfig = require('./config');
+
 const { LogCategory } = require("./logging");
 const log = new LogCategory("activity-tracking-server.js");
 
@@ -14,8 +17,26 @@ const port = process.env.PORT || 5300;
 const mongoUri = process.env.MONGO_URI || config.mongoUri;
 const mongoDb = process.env.MONGO_DB || config.mongoDb;
 
+// Configure CORS
+const corsOptions = {
+  origin: function (origin, callback) {
+    const env = process.env.NODE_ENV || 'development';
+    const allowedOrigins = corsConfig[env].allowedOrigins;
+
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true); // Allow the request
+    } else {
+      callback(new Error('Not allowed by CORS: ' + origin)); // Deny the request
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+  credentials: true // Allow credentials (cookies, authorization headers, etc.)
+};
+
 // Middleware setup
-app.use(cors());
+app.use(helmet());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Only connect to MongoDB if not in test mode
