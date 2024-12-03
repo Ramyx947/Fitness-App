@@ -5,8 +5,8 @@ Unit tests mock external dependencies like the MongoDB client to isolate functio
 
 import pytest
 from unittest.mock import MagicMock
-from flask import Flask
 from app import app, stats, user_stats
+
 
 @pytest.fixture
 def client():
@@ -22,21 +22,38 @@ def client():
 
 
 def test_stats_unit(monkeypatch):
-    # Mock the MongoDB client
+    # Mock the MongoDB connection
     mock_db = MagicMock()
     mock_db.exercises.aggregate.return_value = [
         {"exerciseType": "Swimming", "totalDuration": 80},
         {"exerciseType": "Pilates", "totalDuration": 70}
     ]
-    monkeypatch.setattr("app.db.exercises.aggregate", mock_db.exercises.aggregate)
+
+    # Patch the db object in the app
+    monkeypatch.setattr("app.db", mock_db)
 
     # Call the stats function
     result = stats()
-    assert len(result) == 2
     assert result == [
         {"exerciseType": "Swimming", "totalDuration": 80},
         {"exerciseType": "Pilates", "totalDuration": 70}
     ]
 
-def test_user_stats_unit():
-    pass
+
+def test_user_stats_unit(monkeypatch):
+    # Mock the MongoDB connection
+    mock_db = MagicMock()
+    mock_db.exercises.aggregate.return_value = [
+        {"exerciseType": "Running", "totalDuration": 20},
+        {"exerciseType": "Gym", "totalDuration": 30}
+    ]
+
+    # Patch the db object in the app
+    monkeypatch.setattr("app.db", mock_db)
+
+    # Call the user_stats function
+    result = user_stats("tina")
+    assert result == [
+        {"exerciseType": "Running", "totalDuration": 20},
+        {"exerciseType": "Gym", "totalDuration": 30}
+    ]
