@@ -31,14 +31,11 @@ allowed_origins = {
     ]
 }
 
-CORS(app, resources={
-    r"/api/*": {
-        "origins": allowed_origins.get(env, []),
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Allowed HTTP methods
-        "allow_headers": ["Content-Type", "Authorization"],  # Allowed headers
-        "supports_credentials": True  # Allow credentials (cookies, authorization headers, etc.)
-    }
-})
+CORS(
+    app,
+    resources={r"/*": {"origins": "*"}},
+    methods=["GET", "HEAD", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"]
+)
 
 load_dotenv()
 mongo_uri = os.getenv('MONGO_URI')
