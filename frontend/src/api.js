@@ -15,20 +15,14 @@ function getAuthServiceUrl() {
 const api = axios.create({
   baseURL: getApiUrl(),
   headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*', // Allow requests from any origin
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS', // Allow these methods
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization', // Allow these headers
+      'Content-Type': 'application/json'
   },
 });
 
 export const authServiceApi = axios.create({
   baseURL: getAuthServiceUrl(),
   headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*', // Same CORS headers
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Content-Type': 'application/json'
   },
 });
 
