@@ -157,7 +157,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     ports:
-      - "4000:4000"
+      - "8081:3000"
     volumes:
       - grafana_data:/var/lib/grafana
     environment:
