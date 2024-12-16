@@ -1,8 +1,10 @@
 module.exports = {
-  testPathIgnorePatterns: ['/node_modules/', '/__tests__/helpers/'],
+  testPathIgnorePatterns: ['/node_modules/', '/__tests__/helpers/', '/utils/'],
   maxWorkers: 1, // Run tests sequentially to prevent issues with shared resources
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  testEnvironment: 'node', // Use Node.js environment
+  testEnvironment: 'node',
+  globalSetup: './utils/setup.js',
+  globalTeardown: './utils/teardown.js',
   transform: {
     "^.+\\.(js|jsx)$": "babel-jest",
   },
