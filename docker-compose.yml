@@ -146,13 +146,13 @@ services:
       - app-network
 
   prometheus:
-      image: prom/prometheus:latest
-      volumes:
-        - ./prometheus:/etc/prometheus
-      ports:
-        - "9090:9090"
-      networks:
-        - app-network
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus:/etc/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - app-network
         
   grafana:
     image: grafana/grafana:latest
