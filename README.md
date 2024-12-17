@@ -79,7 +79,7 @@ docker-compose up --build
 
 ### Start existing containers (no rebuild of images)
 ```sh
-docker-compose up
+docker-compose -f docker-compose.develop.yml up
 ```
 
 #### Spinning up a single service
@@ -92,6 +92,20 @@ docker-compose up [servicename]
 docker-compose down [servicename]
 ```
 
+#### After changes to any config file you should follow these steps:
+
+#### Shut down all containers
+```sh
+ docker-compose -f docker-compose.develop.yml down
+```
+#### Shut down all containers
+```sh
+docker-compose -f docker-compose.develop.yml up --build
+```
+#### Shut down all containers
+```sh
+docker-compose -f docker-compose.develop.yml up up
+```
 
 ## Development without using Docker-Compose
 

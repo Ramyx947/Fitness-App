@@ -29,20 +29,14 @@ const validateExercise = (exercise, expectedData = {}, isDatabase = false) => {
 
   expect(typeof exercise.__v).toBe('number');
 
-// TODO: Sprint 2 - fix or remove test
-// // Validate optional fields (deep equality)
-//  if (expectedData.description !== undefined) {
-//   expect(exercise.description).toEqual(expect.any(String));
-//   expect(exercise.description).toBe(expectedData.description);
-// }
+  // Validate date field in UTC format
+  const exerciseDateUTC = isDatabase ? exercise.date.toISOString() : new Date(exercise.date).toISOString();
+  const expectedDateUTC = new Date(expectedData.date).toISOString();
 
   // Validate date field
-  if (isDatabase) {
-    expect(exercise.date.toISOString()).toBe(expectedData.date.toISOString());
-  } else {
-    expect(new Date(exercise.date).toISOString()).toBe(expectedData.date.toISOString());
-  }
+  expect(exerciseDateUTC).toBe(expectedDateUTC);
 
+  // Additional check to confirm valid date
   expect(new Date(exercise.date).toString()).not.toBe('Invalid Date');
 };
 

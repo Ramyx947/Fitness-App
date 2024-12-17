@@ -4,6 +4,7 @@ import os
 import mongomock
 import pytest
 from ariadne import load_schema_from_path
+
 from app import app
 
 
