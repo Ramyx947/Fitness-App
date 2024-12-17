@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const Exercise = require('../models/exercise.model');
+const limiter = require('../middleware/rate-limiter');
+
 const { LogCategory } = require("../logging");
 const log = new LogCategory("activity-tracker-exercises.js");
 
 // GET: Retrieve all exercises
-router.get('/', async (req, res) => {
+router.get('/', limiter, async (req, res) => {
     try {
       log.debug("[GET] Retrieve all exercises");
       const exercises = await Exercise.find();
@@ -19,7 +21,7 @@ router.get('/', async (req, res) => {
   });
 
 // POST: Add a new exercise
-router.post('/add', async (req, res) => {
+router.post('/add', limiter, async (req, res) => {
   try {
     const { username, exerciseType, description, duration, date } = req.body;
     const newExercise = new Exercise({
@@ -47,7 +49,7 @@ router.post('/add', async (req, res) => {
 });
 
 // GET: Retrieve an exercise by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', limiter, async (req, res) => {
   try {
     const exercise = await Exercise.findById(req.params.id);
     if (!exercise) {
@@ -82,7 +84,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // PUT: Update an exercise by ID
-router.put('/update/:id', async (req, res) => {
+router.put('/update/:id', limiter, async (req, res) => {
     try {
       const { username, exerciseType, description, duration, date } = req.body;
   

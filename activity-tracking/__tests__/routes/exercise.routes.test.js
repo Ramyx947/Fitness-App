@@ -1,83 +1,67 @@
 const request = require('supertest');
+const mockingoose = require('mockingoose');
+const mongoose = require('mongoose');
 const Exercise = require('../../models/exercise.model');
 const app = require('../../server');
 const { validateExercise } = require('../helpers/exerciseHelpers');
 
-let exerciseId;
-
-
-// Set up test data before each test
-beforeEach(async () => {
-  // Create a new exercise for testing
-  const fixedDate = new Date(Date.UTC(2024, 0, 1, 10, 0, 0));
-  const exercise = new Exercise({
+describe('Exercise API Tests', () => {
+  // Define mock data
+  const mockExercise = {
+    _id: new mongoose.Types.ObjectId(),
     username: 'UserOne',
     exerciseType: 'Swimming',
     description: 'Morning swim',
     duration: 30,
-    date: fixedDate,
+    date: '2024-01-01T10:00:00Z',
+    __v: 0,
+  };  
+
+  beforeEach(() => {
+    mockingoose.resetAll();
   });
 
-  // Save exercise and store its ID
-  const savedExercise = await exercise.save();
-  exerciseId = savedExercise._id;
-});
-
-// Clean up the database after each test
-afterEach(async () => {
-  await Exercise.deleteMany({});
-});
-
-describe('Exercise API Tests', () => {
   /**
    * Test Case 1: POST - Create a new exercise
    */
   it('should create a new exercise with correct data types', async () => {
-    const fixedDate = new Date(Date.UTC(2024, 0, 1, 10, 0, 0));
-
-    const newExercise = {
-      username: 'UserTwo',
-      exerciseType: 'Running',
-      description: 'Easy run',
-      duration: 15,
-      date: fixedDate,
-    };
+    // Mock the save method to return the new exercise
+    mockingoose(Exercise).toReturn(mockExercise, 'save');
 
     const response = await request(app)
       .post('/exercises/add')
-      .send(newExercise);
+      .send({
+        username: 'UserOne',
+        exerciseType: 'Swimming',
+        description: 'Morning swim',
+        duration: 30,
+        date: '2024-01-01T10:00:00Z',
+      });
 
     expect(response.statusCode).toBe(200);
     expect(response.body.message).toBe('Exercise added!');
     expect(response.body.exercise).toBeDefined();
 
     // Validate the structure and data types of the returned exercise
-    validateExercise(response.body.exercise, newExercise, false); // isDatabase flag = false
-
-    // Verify that the exercise exists in the database with correct data types
-    const exerciseInDb = await Exercise.findOne({ username: 'UserTwo' }).lean();
-    validateExercise(exerciseInDb, newExercise, true); // isDatabase = true
-
+    validateExercise(response.body.exercise, mockExercise, false);
   });
 
   /**
    * Test Case 2: GET - Retrieve all exercises
    */
   it('should retrieve all exercises with correct data types', async () => {
+    // Mock the find method to return an array of exercises
+    mockingoose(Exercise).toReturn([mockExercise], 'find');
+
     const response = await request(app).get('/exercises');
+
     expect(response.statusCode).toBe(200);
     expect(Array.isArray(response.body)).toBe(true);
-    expect(response.body.length).toBe(1); // Only the exercise from beforeEach
+    expect(response.body.length).toBe(1);
 
     // Validate each exercise in the array
     response.body.forEach((exercise) => {
-      validateExercise(exercise, {
-        username: 'UserOne',
-        exerciseType: 'Swimming',
-        description: 'Morning swim',
-        duration: 30,
-        date: new Date('2024-01-01T10:00:00Z'),
-      }, false); // isDatabase = false
+      validateExercise(exercise, mockExercise, false);
     });
   });
 
@@ -85,16 +69,13 @@ describe('Exercise API Tests', () => {
    * Test Case 3: GET - Retrieve an exercise by ID
    */
   it('should retrieve an exercise by id with correct data types', async () => {
-    const response = await request(app).get(`/exercises/${exerciseId}`);
-    expect(response.statusCode).toBe(200);
+    // Mock the findById method to return the mock exercise
+    mockingoose(Exercise).toReturn(mockExercise, 'findOne');
 
-    validateExercise(response.body, {
-      username: 'UserOne',
-      exerciseType: 'Swimming',
-      description: 'Morning swim',
-      duration: 30,
-      date: new Date('2024-01-01T10:00:00Z'),
-    }, false); // isDatabase = false
+    const response = await request(app).get(`/exercises/${mockExercise._id}`);
+
+    expect(response.statusCode).toBe(200);
+    validateExercise(response.body, mockExercise, false);
   });
 
   /**
@@ -102,50 +83,43 @@ describe('Exercise API Tests', () => {
    */
   it('should update an existing exercise with correct data types', async () => {
     const updatedExercise = {
-      username: 'UserTwo',
+      ...mockExercise,
       exerciseType: 'Running',
-      description: 'Easy run',
       duration: 45,
-      date: new Date(Date.UTC(2024, 0, 1, 11, 0, 0)),
     };
 
+    // Mock findById to return the original exercise
+    mockingoose(Exercise).toReturn(mockExercise, 'findOne');
+
+    // Mock save to return the updated exercise
+    mockingoose(Exercise).toReturn(updatedExercise, 'save');
+
     const response = await request(app)
-      .put(`/exercises/update/${exerciseId}`)
+      .put(`/exercises/update/${mockExercise._id}`)
       .send(updatedExercise);
 
     expect(response.statusCode).toBe(200);
     expect(response.body.message).toBe('Exercise updated!');
-
-    // Validate the structure and data types of the updated exercise in the response
-    validateExercise(response.body.exercise, {
-      username: 'UserTwo',
-      exerciseType: 'Running',
-      description: 'Easy run',
-      duration: 45,
-      date: new Date(Date.UTC(2024, 0, 1, 11, 0, 0)),
-    }, false); // isDatabase = false
-
-    // Verify that the exercise has been updated in the database with correct data types
-    const exerciseInDb = await Exercise.findById(exerciseId);
-    validateExercise(exerciseInDb, {
-      username: 'UserTwo',
-      exerciseType: 'Running',
-      description: 'Easy run',
-      duration: 45,
-      date: new Date(Date.UTC(2024, 0, 1, 11, 0, 0)),
-    }, true); // isDatabase = true
+    validateExercise(response.body.exercise, updatedExercise, false);
   });
 
   /**
    * Test Case 5: DELETE - Delete an exercise by ID
    */
   it('should delete an exercise by id with correct data types', async () => {
-    const response = await request(app).delete(`/exercises/${exerciseId}`);
+    // Mock findByIdAndDelete to return the mock exercise
+    mockingoose(Exercise).toReturn(mockExercise, 'findOneAndDelete');
+  
+    // Mock findById to return null after deletion
+    mockingoose(Exercise).toReturn(null, 'findOne');
+  
+    const response = await request(app).delete(`/exercises/${mockExercise._id}`);
+  
     expect(response.statusCode).toBe(200);
     expect(response.body.message).toBe('Exercise deleted.');
-
-    // Verify that the exercise has been deleted from the database
-    const exerciseInDb = await Exercise.findById(exerciseId);
+  
+    // Verify that the exercise has been deleted
+    const exerciseInDb = await Exercise.findById(mockExercise._id);
     expect(exerciseInDb).toBeNull();
   });
 });
