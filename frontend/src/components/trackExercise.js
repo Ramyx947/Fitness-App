@@ -59,7 +59,7 @@ const TrackExercise = ({ currentUser, trackExercise }) => {
         <div>
             <h3>Track exercise</h3>
             <Form onSubmit={onSubmit} style={{ maxWidth: '400px', margin: 'auto' }}>
-                <Form.Group controlId="formDate" className="form-margin">
+                <Form.Group className="form-margin">
                     <Form.Label htmlFor="datePicker">Date:</Form.Label>
                     <DatePicker
                         id="datePicker"
