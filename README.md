@@ -143,12 +143,17 @@ npm start
 #### spin up MongoDB without docker-compose:
 ```
 docker run --name mongodb -d -p 27017:27017 -v mongodbdata:/data/db mongo:latest
+
+OR
+
+docker exec -it team-3-mla-app-mongodb-1 mongosh -u root -p cfgmla23 --authenticationDatabase admin
 ```
 
 ### Connect to MongoDB
 
 ```
 mongosh -u root -p cfgmla23 --authenticationDatabase admin --host localhost --port 27017
+
 ```
 
 show registered activities:
