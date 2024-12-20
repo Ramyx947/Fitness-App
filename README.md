@@ -75,10 +75,12 @@ if you're missing any version, please contact your course administrator.
 ### Building entire project with Docker (+ starting containers up)
 ```sh
 docker-compose up --build
+docker-compose -f docker-compose.develop.yml up --build
 ```
 
 ### Start existing containers (no rebuild of images)
 ```sh
+docker-compose -f docker-compose.develop.yml up
 docker-compose -f docker-compose.develop.yml up
 ```
 
@@ -98,13 +100,13 @@ docker-compose down [servicename]
 ```sh
  docker-compose -f docker-compose.develop.yml down
 ```
-#### Shut down all containers
+#### Build and start all containers
 ```sh
 docker-compose -f docker-compose.develop.yml up --build
 ```
-#### Shut down all containers
+#### Build containers
 ```sh
-docker-compose -f docker-compose.develop.yml up up
+docker-compose -f docker-compose.develop.yml up
 ```
 
 ## Development without using Docker-Compose
@@ -141,12 +143,17 @@ npm start
 #### spin up MongoDB without docker-compose:
 ```
 docker run --name mongodb -d -p 27017:27017 -v mongodbdata:/data/db mongo:latest
+
+OR
+
+docker exec -it team-3-mla-app-mongodb-1 mongosh -u root -p cfgmla23 --authenticationDatabase admin
 ```
 
 ### Connect to MongoDB
 
 ```
 mongosh -u root -p cfgmla23 --authenticationDatabase admin --host localhost --port 27017
+
 ```
 
 show registered activities:
