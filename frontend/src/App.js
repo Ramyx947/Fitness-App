@@ -14,6 +14,7 @@ import Recipes from './components/recipes.js';
 import logo from './img/CFG_logo.png';
 import { trackExercise, fetchStatistics, fetchRecipes } from '../src/api.js';
 import ErrorBoundary from './components/ErrorBoundary.js';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -52,6 +53,17 @@ function App() {
         fetchUserRecipes();
     }, [isLoggedIn]);
 
+    const theme = createTheme({
+        palette: {
+            primary: {
+                main: '#F44995',
+            },
+            default: {
+                main: '#6E6E6E',
+            },
+        },
+    });
+
     return (
         <div className="App">
             <Router>
@@ -64,57 +76,41 @@ function App() {
                     {isLoggedIn && <NavbarComponent onLogout={handleLogout} />}
 
                     <div className="componentContainer">
-                        <Routes>
-                            <Route
-                                path="/login"
-                                element={
-                                    isLoggedIn ? (
-                                        <Navigate to="/" />
-                                    ) : (
-                                        <Login onLogin={handleLogin} />
-                                    )
-                                }
-                            />
-                            <Route
-                                path="/signup"
-                                element={
-                                    isLoggedIn ? (
-                                        <Navigate to="/" />
-                                    ) : (
-                                        <Signup onSignup={handleSignup} />
-                                    )
-                                }
-                            />
-                            <Route
-                                path="/trackExercise"
-                                element={
-                                    isLoggedIn ? (
-                                        <TrackExercise trackExercise={trackExercise} currentUser={currentUser} />
-                                    ) : (
-                                        <Navigate to="/login" />
-                                    )
-                                }
-                            />
-                            <Route
-                                path="/statistics"
-                                element={
-                                    isLoggedIn ? (
-                                        <Statistics fetchStatistics={fetchStatistics} currentUser={currentUser} />
-                                    ) : (
-                                        <Navigate to="/login" />
-                                    )
-                                }
-                            />
-                            <Route
-                                path="/journal"
-                                element={isLoggedIn ? <Journal currentUser={currentUser} /> : <Navigate to="/login" />}
-                            />
-                            <Route
-                                path="/recipes"
-                                element={isLoggedIn ? <Recipes recipes={recipes} error={recipesError} /> : <Navigate to="/login" />}
-                            />
-                            <Route path="/" element={isLoggedIn ? <Navigate to="/trackExercise" /> : <Navigate to="/login" />} />
-                        </Routes>
+                        <ThemeProvider theme={theme}>
+                            <Routes>
+                                <Route path="/login" element={isLoggedIn ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
+                                <Route path="/signup" element={isLoggedIn ? <Navigate to="/" /> : <Signup onSignup={handleSignup} />} />
+                                <Route
+                                    path="/trackExercise"
+                                    element={
+                                        isLoggedIn ? (
+                                            <TrackExercise trackExercise={trackExercise} currentUser={currentUser} />
+                                        ) : (
+                                            <Navigate to="/login" />
+                                        )
+                                    }
+                                />
+                                <Route
+                                    path="/statistics"
+                                    element={
+                                        isLoggedIn ? (
+                                            <Statistics fetchStatistics={fetchStatistics} currentUser={currentUser} />
+                                        ) : (
+                                            <Navigate to="/login" />
+                                        )
+                                    }
+                                />
+                                <Route
+                                    path="/journal"
+                                    element={isLoggedIn ? <Journal currentUser={currentUser} /> : <Navigate to="/login" />}
+                                />
+                                <Route
+                                    path="/recipes"
+                                    element={isLoggedIn ? <Recipes recipes={recipes} error={recipesError} /> : <Navigate to="/login" />}
+                                />
+                                <Route path="/" element={isLoggedIn ? <Navigate to="/trackExercise" /> : <Navigate to="/login" />} />
+                            </Routes>
+                        </ThemeProvider>
                     </div>
                     <Footer />
                 </ErrorBoundary>
