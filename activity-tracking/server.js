@@ -13,18 +13,18 @@ const log = new LogCategory("activity-tracking-server.js");
 
 const app = express();
 const port = process.env.PORT || 5300;
-const mongoUri = process.env.MONGO_URI || config.mongoUri;
-const mongoDb = process.env.MONGO_DB || config.mongoDb;
+const mongoUri = process.env.MONGO_URI || 'mongodb://root:cfgmla23@mongodb:27017/activity?authSource=admin'
+const mongoDb = process.env.MONGO_DB || 'activity'
 
 // Configure CORS
 const corsOptions = {
   origin: function (origin, callback) {
-    const env = process.env.NODE_ENV || 'development';
-    const allowedOrigins = corsConfig[env].allowedOrigins;
+    const { allowedOrigins = [] } = corsConfig[process.env.NODE_ENV || 'development'] || corsConfig.development;
 
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
       callback(null, true); // Allow the request
     } else {
+      console.error(`CORS blocked for origin: ${origin}`);
       callback(new Error('Not allowed by CORS: ' + origin)); // Deny the request
     }
   },
@@ -39,9 +39,10 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 // Connect to MongoDB only if not in test environment
+console.log('Final MongoDB URI!!?!?!?!?!?!?!??S:', mongoUri); 
 if (process.env.NODE_ENV !== 'test' && mongoose.connection.readyState === 0) { // Check if not already connected and not testing
   mongoose
-    .connect(`${mongoUri}/${mongoDb}`, {
+    .connect(mongoUri, {
       useNewUrlParser: true,
       dbName: mongoDb,
       useUnifiedTopology: true,

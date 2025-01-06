@@ -24,6 +24,11 @@
 		}
 	},
 
-	"postCreateCommand": "npm install && bash ./.devcontainer/check-installation.sh"
+	"postCreateCommand": "npm install && bash ./.devcontainer/check-installation.sh",
+	"portsAttributes": {
+		"3001": {
+			"label": "3000"
+		}
+	}
 
 }

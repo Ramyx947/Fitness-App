@@ -34,7 +34,13 @@ export const authServiceApi = axios.create({
 
 
 // Exported API functions
-export const trackExercise = (payload) => api.post('/exercises/add', payload);
+export const trackExercise = (payload) => api.post('/exercises/add', {
+  username: payload.username || 'testUser',  // Make sure it's provided
+  exerciseType: payload.exerciseType || 'Running',  // Default value
+  description: payload.description || '',
+  duration: payload.duration,
+  date: payload.date || new Date().toISOString(),  // Use current date if not provided
+});
 export const loginUser = (payload) => authServiceApi.post('/api/auth/login', payload);
 export const signupUser = (payload) => authServiceApi.post('/api/auth/signup', payload);
 export const fetchStatistics = (variables) =>

@@ -15,7 +15,7 @@ const config = {
             'https://fitapp.co.uk', // Main Production Domain 
         ],
     },
-    "test": {
+    test: {
         "allowedOrigins": ["*"] // or ["*"] to allow all origins
     }
 };

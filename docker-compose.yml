@@ -12,10 +12,10 @@ services:
       - .env  # Loads the environment variables from the .env file
     environment:
       - NODE_ENV=production
-      - REACT_APP_ACTIVITY_URL=${REACT_APP_ACTIVITY_URL}
-      - REACT_APP_ANALYTICS_URL=${REACT_APP_ANALYTICS_URL}
-      - REACT_APP_RECIPES_URL=${REACT_APP_RECIPES_URL}
-      - REACT_APP_AUTHSERVICE_URL=${REACT_APP_AUTHSERVICE_URL}
+        REACT_APP_ACTIVITY_URL=http://activity-tracking:5300
+        REACT_APP_ANALYTICS_URL=http://analytics:5050
+        REACT_APP_RECIPES_URL=http://recipes:5051
+        REACT_APP_AUTHSERVICE_URL=http://authservice:8080
     ports:
       - "3000:80"
     networks:
@@ -48,6 +48,8 @@ services:
       - app-network
     volumes:
       - activity-tracking-data:/app
+    ports:
+      - "5300:5300"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5300/healthcheck"]
       interval: 10s
@@ -70,6 +72,8 @@ services:
       - app-network
     volumes:
       - analytics-data:/app
+    ports:
+    - "5050:5050"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5050/healthcheck"]
       interval: 30s
@@ -93,6 +97,8 @@ services:
       - app-network
     volumes:
       - recipes-data:/app
+    ports:
+    - "7000:7000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5051/healthcheck"]
       interval: 30s

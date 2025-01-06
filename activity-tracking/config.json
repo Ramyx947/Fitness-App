@@ -1,5 +1,5 @@
 {
-    "mongoUri": "mongodb://root:cfgmla23@mongodb:27017",
+    "mongoUri": "mongodb://root:cfgmla23@mongodb:27017/activity?authSource=admin",
     "mongoDb": "activity"
   }
   

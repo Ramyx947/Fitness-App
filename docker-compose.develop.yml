@@ -10,13 +10,13 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     env_file:
-      - .env.develop
+      - .env
     environment:
       - NODE_ENV=development
-      - REACT_APP_ACTIVITY_URL=${REACT_APP_ACTIVITY_URL}
-      - REACT_APP_ANALYTICS_URL=${REACT_APP_ANALYTICS_URL}
-      - REACT_APP_RECIPES_URL=${REACT_APP_RECIPES_URL}
-      - REACT_APP_AUTHSERVICE_URL=${REACT_APP_AUTHSERVICE_URL}
+        REACT_APP_ACTIVITY_URL=http://activity-tracking:5300
+        REACT_APP_ANALYTICS_URL=http://analytics:5050
+        REACT_APP_RECIPES_URL=http://recipes:5051
+        REACT_APP_AUTHSERVICE_URL=http://localhost:8080
     ports:
       - "3000:80"
     volumes:  # Mounts local directories into the container for real-time code updates (no need to refresh to see changes)
@@ -36,9 +36,9 @@ services:
       context: ./activity-tracking
       dockerfile: Dockerfile
     env_file:
-      - .env.develop
+      - .env
     environment:
-      - NODE_ENV=${NODE_ENV}
+      - NODE_ENV=development
       - MONGO_URI=${MONGO_URI}
       - MONGO_DB=${MONGO_DB_ACTIVITY}
     depends_on:
@@ -48,6 +48,8 @@ services:
       - app-network
     volumes:
       - ./activity-tracking:/app
+    ports:
+      - "5300:5300"
     healthcheck:
       test: ["CMD", "true"]
       interval: 10s
@@ -58,7 +60,7 @@ services:
       context: ./analytics
       dockerfile: Dockerfile
     env_file:
-      - .env.develop
+      - .env
     environment:
       - NODE_ENV=${NODE_ENV}
       - MONGO_URI=${MONGO_URI}
@@ -70,6 +72,8 @@ services:
       - app-network
     volumes:
       - ./analytics:/app
+    ports:
+      - "5050:5050"
     healthcheck:
       test: ["CMD", "true"]
       interval: 30s
@@ -81,7 +85,7 @@ services:
       context: ./recipes
       dockerfile: Dockerfile
     env_file:
-      - .env.develop
+      - .env
     environment:
       - NODE_ENV=${NODE_ENV}
       - MONGO_URI=${MONGO_URI}
@@ -93,6 +97,8 @@ services:
       - app-network
     volumes:
       - ./recipes:/app
+    ports:
+    - "7000:7000"
     healthcheck:
       test: ["CMD", "true"]
       interval: 30s
@@ -104,7 +110,7 @@ services:
       context: ./authservice
       dockerfile: Dockerfile
     env_file:
-      - .env.develop
+      - .env
     environment:
     - SPRING_DATA_MONGODB_DATABASE=${MONGO_DB_AUTHSERVICE}
     - SPRING_DATA_MONGODB_URI=${MONGO_URI}
@@ -124,7 +130,7 @@ services:
   mongodb:
     image: mongo:latest
     env_file:
-      - .env.develop
+      - .env
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=cfgmla23
