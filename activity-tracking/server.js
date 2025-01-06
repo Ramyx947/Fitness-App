@@ -73,7 +73,7 @@ const exercisesRouter = require('./routes/exercises');
 app.use('/exercises', exercisesRouter);
 
 // Error handling middleware
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   log.error(err.stack);
   res.status(500).send('Something went wrong!');
 });
