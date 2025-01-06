@@ -24,9 +24,11 @@ env = os.getenv('NODE_ENV', 'development')
 allowed_origins = {
     "development": [
         "http://localhost:3000",  # Frontend
-        "http://localhost:5300",  # Activity-tracking
-        "http://localhost:5051",  # Recipes
-        "http://localhost:8080",  # Auth service
+        "http://localhost",
+        "http://localhost:5300",  # Activity Tracking Service
+        "http://localhost:5050",  # Analytics Service
+        "http://localhost:5051",  # Recipes Service
+        "http://localhost:8080",  # Auth Service
         "http://localhost:50"  # CI pipeline port
     ],
     "production": [
