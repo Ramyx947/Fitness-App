@@ -16,7 +16,6 @@ metrics = PrometheusMetrics(app)
 
 # Set up CORS
 env = os.getenv('NODE_ENV', 'development')
-print(env)
 
 allowed_origins = {
     "development": [
