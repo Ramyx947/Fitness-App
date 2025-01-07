@@ -78,8 +78,8 @@ app.get('/metrics', async (req, res) => {
 const exercisesRouter = require('./routes/exercises');
 app.use('/exercises', exercisesRouter);
 
-// Correct Error handling middleware (add 'next')
-app.use((err, req, res, next) => {
+// Correct Error handling middleware
+app.use((err, req, res) => {
   log.error(err.stack);
   res.status(500).send('Something went wrong!');
 });
