@@ -75,11 +75,13 @@ if you're missing any version, please contact your course administrator.
 ### Building entire project with Docker (+ starting containers up)
 ```sh
 docker-compose up --build
+docker-compose -f docker-compose.develop.yml up --build
 ```
 
 ### Start existing containers (no rebuild of images)
 ```sh
-docker-compose up
+docker-compose -f docker-compose.develop.yml up
+docker-compose -f docker-compose.develop.yml up
 ```
 
 #### Spinning up a single service
@@ -92,6 +94,20 @@ docker-compose up [servicename]
 docker-compose down [servicename]
 ```
 
+#### After changes to any config file you should follow these steps:
+
+#### Shut down all containers
+```sh
+ docker-compose -f docker-compose.develop.yml down
+```
+#### Build and start all containers
+```sh
+docker-compose -f docker-compose.develop.yml up --build
+```
+#### Build containers
+```sh
+docker-compose -f docker-compose.develop.yml up
+```
 
 ## Development without using Docker-Compose
 
@@ -127,12 +143,17 @@ npm start
 #### spin up MongoDB without docker-compose:
 ```
 docker run --name mongodb -d -p 27017:27017 -v mongodbdata:/data/db mongo:latest
+
+OR
+
+docker exec -it team-3-mla-app-mongodb-1 mongosh -u root -p cfgmla23 --authenticationDatabase admin
 ```
 
 ### Connect to MongoDB
 
 ```
 mongosh -u root -p cfgmla23 --authenticationDatabase admin --host localhost --port 27017
+
 ```
 
 show registered activities:
@@ -148,3 +169,16 @@ db.users.find()
 
 ## Deployment
 The application is containerized using Docker and can be deployed on any platform that supports Docker containers. For AWS deployment, a GitHub Actions pipeline is configured for CI/CD.
+
+## Monitoring
+
+We use prometheus to collect, store and query metrics from the microservices in the application. 
+Grafana is used as the visualization platform that integrated Promtheus to create dashboard for monitoring and analyzing the collected metrics. 
+
+To access the dashboard do the following:
+- `docker compose up --build`
+- `http://localhost:8081/login`
+- `username=admin, password=cfgmla23`
+
+In the top left corner, click on the navigation bar, then click on Dashboard. 
+You will see a dashboard called Application Dashboard.

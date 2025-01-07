@@ -21,7 +21,7 @@ router.get('/', limiter, async (req, res) => {
   });
 
 // POST: Add a new exercise
-router.post('/add', async (req, res) => {
+router.post('/add', limiter, async (req, res) => {
   try {
     const { username, exerciseType, description, duration, date } = req.body;
     const newExercise = new Exercise({
@@ -84,7 +84,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // PUT: Update an exercise by ID
-router.put('/update/:id', async (req, res) => {
+router.put('/update/:id', limiter, async (req, res) => {
     try {
       const { username, exerciseType, description, duration, date } = req.body;
   

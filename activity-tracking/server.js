@@ -10,7 +10,6 @@ const corsConfig = require('./config');
 const { LogCategory } = require("./logging");
 const log = new LogCategory("activity-tracking-server.js");
 
-require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 5300;
@@ -39,13 +38,20 @@ app.use(helmet());
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Only connect to MongoDB if not in test mode
-if (process.env.NODE_ENV !== 'test') {
+// Connect to MongoDB only if not in test environment
+if (process.env.NODE_ENV !== 'test' && mongoose.connection.readyState === 0) { // Check if not already connected and not testing
   mongoose
-    .connect(mongoUri, { useNewUrlParser: true, dbName: mongoDb })
+    .connect(`${mongoUri}/${mongoDb}`, {
+      useNewUrlParser: true,
+      dbName: mongoDb,
+      useUnifiedTopology: true,
+    })
     .then(() => log.info("MongoDB database connection established successfully"))
-    .catch((error) => log.error("MongoDB connection error:", error));
-  
+    .catch((error) => {
+      log.error("MongoDB connection error:", error);
+      console.error("MongoDB connection error:", error);
+    });
+
   const connection = mongoose.connection;
   connection.on('error', (error) => {
     console.error("mongoUri", mongoUri)
@@ -72,13 +78,13 @@ app.get('/metrics', async (req, res) => {
 const exercisesRouter = require('./routes/exercises');
 app.use('/exercises', exercisesRouter);
 
-// Error handling middleware
+// Correct Error handling middleware (add 'next')
 app.use((err, req, res, next) => {
   log.error(err.stack);
   res.status(500).send('Something went wrong!');
 });
 
-// Start the server
+// Start the server only if not in test environment
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => {
     log.info(`Server is running on port: ${port}`);

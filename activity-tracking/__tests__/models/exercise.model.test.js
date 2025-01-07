@@ -11,13 +11,8 @@ describe('Exercise Model Test Suite', () => {
     });
   });
 
-  // Clean up the database before each test
-  beforeEach(async () => {
-    await Exercise.deleteMany({});
-  });
-
-  // Close DB connection after tests run
   afterAll(async () => {
+    await mongoose.connection.dropDatabase();
     await mongoose.connection.close();
   });
 
