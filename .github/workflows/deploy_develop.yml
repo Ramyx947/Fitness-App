@@ -63,7 +63,7 @@ jobs:
         if: ${{ env.language == 'python' && !hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
         run: |
           cd ${{ github.workspace }}/${{ env.working_directory }}
-          poetry lock --no-update
+          poetry lock
       - name: Cache Dependencies
         if: ${{ env.language == 'node' }}
         uses: actions/cache@v3
@@ -89,7 +89,7 @@ jobs:
               ;;
             python)
               echo "Setting up Python environment..."
-              poetry lock --no-update
+              poetry lock
               poetry install
               poetry run flake8 .
               ;;
@@ -142,7 +142,7 @@ jobs:
         if: ${{ env.language == 'python' && !hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
         run: |
           cd ${{ github.workspace }}/${{ env.working_directory }}
-          poetry lock --no-update
+          poetry lock
       - name: Cache Dependencies
         if: ${{ env.language == 'node' }}
         uses: actions/cache@v3
@@ -168,7 +168,7 @@ jobs:
               ;;
             python)
               echo "Setting up Python environment and running tests..."
-              poetry lock --no-update
+              poetry lock
               poetry install
               poetry run pytest
               ;;
