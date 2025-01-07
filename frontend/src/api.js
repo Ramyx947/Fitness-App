@@ -27,7 +27,7 @@ const activityApi = axios.create({
   headers: { 'Content-Type': 'application/json' }
 });
 
-const authServiceApi = axios.create({
+export const authServiceApi = axios.create({
   baseURL: getAuthServiceUrl(),
   headers: { 'Content-Type': 'application/json' }
 });
