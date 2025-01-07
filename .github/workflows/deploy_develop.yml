@@ -57,7 +57,7 @@ jobs:
       - name: Install Poetry (if using Python)
         if: ${{ env.language == 'python' }}
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
+          curl -sSL https://install.python-poetry.org | python -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
       - name: Regenerate poetry.lock (if missing or corrupted)
         if: ${{ env.language == 'python' && !hashFiles(format('{0}/poetry.lock', env.working_directory)) }}
@@ -135,7 +135,7 @@ jobs:
       - name: Install Poetry (if using Python)
         if: ${{ env.language == 'python' }}
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
+          curl -sSL https://install.python-poetry.org | python -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
       
       - name: Regenerate poetry.lock (if missing or corrupted)
