@@ -1,55 +1,70 @@
 import axios from 'axios';
 
-// Centralized API URL
-function getApiUrl() {
-  const apiUrl = process.env.REACT_APP_API_URL;
-  return apiUrl || 'http://localhost:5300';
+// Centralized URL getters
+function getActivityUrl() {
+  const activityUrl = process.env.REACT_APP_ACTIVITY_URL;
+  return activityUrl || 'http://localhost:5300';
 }
 
-// Centralized AuthService URL
 function getAuthServiceUrl() {
   const authUrl = process.env.REACT_APP_AUTHSERVICE_URL;
   return authUrl || 'http://localhost:8080';
 }
 
-const api = axios.create({
-  baseURL: getApiUrl(),
-  headers: {
-      'Content-Type': 'application/json'
-  },
+function getAnalyticsUrl() {
+  const analyticsUrl = process.env.REACT_APP_ANALYTICS_URL;
+  return analyticsUrl || 'http://localhost:5050/api/graphql';
+}
+
+function getRecipesUrl() {
+  const recipesUrl = process.env.REACT_APP_RECIPES_URL;
+  return recipesUrl || 'http://localhost:5051';
+}
+
+// Create API instances for each service
+const activityApi = axios.create({
+  baseURL: getActivityUrl(),
+  headers: { 'Content-Type': 'application/json' }
 });
 
-export const authServiceApi = axios.create({
+const authServiceApi = axios.create({
   baseURL: getAuthServiceUrl(),
-  headers: {
-      'Content-Type': 'application/json'
-  },
+  headers: { 'Content-Type': 'application/json' }
 });
 
+const analyticsApi = axios.create({
+  baseURL: getAnalyticsUrl(),
+  headers: { 'Content-Type': 'application/json' }
+});
+
+const recipesApi = axios.create({
+  baseURL: getRecipesUrl(),
+  headers: { 'Content-Type': 'application/json' }
+});
 
 // Exported API functions
-export const trackExercise = (payload) => api.post('/exercises/add', payload);
+export const trackExercise = (payload) => activityApi.post('/exercises/add', payload);
 export const loginUser = (payload) => authServiceApi.post('/api/auth/login', payload);
 export const signupUser = (payload) => authServiceApi.post('/api/auth/signup', payload);
-export const fetchStatistics = (variables) =>
-  api.post('/api/graphql', {
-      query: `
-      query GetWeeklyStats($user: String!, $start: String!, $end: String!) {
-        weekly(user: $user, start: $start, end: $end) {
-          success
-          errors
-          results {
-            exercises {
-              exerciseType
-              totalDuration
-            }
+export const fetchStatistics = (variables) => analyticsApi.post('', {
+  query: `
+    query GetFilteredStats($name: String!) {
+      filteredStats(name: $name) {
+        success
+        errors
+        results {
+          username
+          exercises {
+            exerciseType
+            totalDuration
           }
         }
       }
-    `,
-      variables,
-    });
-export const fetchRecipes = () => api.get('/recipes');
+    }
+  `,
+  variables,
+});
+export const fetchRecipes = () => recipesApi.get('/recipes');
 
-// Export default axios instance for general usage if needed
-export default api;
+// Export default api for backward compatibility
+export default activityApi;
