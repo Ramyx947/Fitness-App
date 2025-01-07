@@ -57,6 +57,7 @@ metrics.info('app_info', 'Application info', version='1.0.3')
 # initialise the query type, load the schema and make it executable
 query = QueryType()
 
+
 # grapqhql resolver field stats
 @query.field("stats")
 def resolve_stats(_, info):
@@ -251,6 +252,7 @@ def handle_error(e):
     traceback.print_exc()
     return jsonify(error="An internal error occurred"), 500
 
+
 # Set the path to the schema file and load it
 schema_directory = os.path.dirname(os.path.abspath(__file__))
 schema_path = os.path.join(schema_directory, "schema.graphql")
@@ -258,6 +260,7 @@ type_defs = load_schema_from_path(schema_path)
 logger.info("Type Definitions Loaded:", type_defs)
 
 schema = make_executable_schema(type_defs, query)
+
 
 # set up the graphql server
 @app.route('/api/graphql', methods=['POST'])
