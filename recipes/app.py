@@ -13,6 +13,23 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 metrics = PrometheusMetrics(app)
+
+# Set up CORS
+env = os.getenv('NODE_ENV', 'development')
+
+allowed_origins = {
+    "development": [
+        "http://localhost:3000",  # Frontend
+        "http://localhost:5300",  # Activity-tracking
+        "http://localhost:5051",  # Recipes
+        "http://localhost:8080",  # Auth service
+        "http://localhost:50"  # CI pipeline port
+    ],
+    "production": [
+        "https://fitapp.co.uk"  # Main production domain
+    ]
+}
+
 CORS(
     app,
     resources={r"/*": {"origins": "*"}},

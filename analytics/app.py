@@ -17,8 +17,30 @@ logger = logging.getLogger(__name__)
 # set up flask app
 app = Flask(__name__)
 metrics = PrometheusMetrics(app)
-CORS(app, resources={r"/*": {"origins": "*"}},
-     methods="GET,HEAD,POST,OPTIONS,PUT,PATCH,DELETE")
+
+# Set up CORS
+env = os.getenv('NODE_ENV', 'development')
+
+allowed_origins = {
+    "development": [
+        "http://localhost:3000",  # Frontend
+        "http://localhost",
+        "http://localhost:5300",  # Activity Tracking Service
+        "http://localhost:5050",  # Analytics Service
+        "http://localhost:5051",  # Recipes Service
+        "http://localhost:8080",  # Auth Service
+        "http://localhost:50"  # CI pipeline port
+    ],
+    "production": [
+        "https://fitapp.co.uk"  # Main production domain
+    ]
+}
+
+CORS(
+    app,
+    resources={r"/*": {"origins": "*"}},
+    methods=["GET", "HEAD", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"]
+)
 
 load_dotenv()
 title = "Weekly Exercise Tracker Statistics"
@@ -34,53 +56,22 @@ metrics.info('app_info', 'Application info', version='1.0.3')
 
 # initialise the query type, load the schema and make it executable
 query = QueryType()
-type_defs = load_schema_from_path("schema.graphql")
-
-
-# set up the graphql server
-@app.route('/api/graphql', methods=['POST'])
-def graphql_server():
-    data = request.get_json()
-    success, result = graphql_sync(
-        schema,
-        data,
-        context_value=request,
-        debug=True
-    )
-    status_code = 200 if success else 400
-    return jsonify(result), status_code
-
-
-# Define the HTML for GraphQL Playground
-GRAPHQL_PLAYGROUND_HTML_FP = "templates/graphql_playground.html"
-with open(GRAPHQL_PLAYGROUND_HTML_FP, 'r', encoding='utf-8') as file:
-    html_content = file.read()
-
-
-# graphql playground for health check
-@app.route('/api/graphql', methods=['GET'])
-def graphql_playground():
-    return html_content, 200
-
-
-# rest endpoint serving as a health check and welcome page
-@app.route('/')
-def index():
-    exercises = db.exercises.find()
-    exercises_list = list(exercises)
-    return json_util.dumps(exercises_list)
 
 
 # grapqhql resolver field stats
 @query.field("stats")
 def resolve_stats(_, info):
     try:
+        logger.info("Resolver called")
+        # Fetch statistics from the database
         loadedStats = stats()
+        logger.info("Number of stats found:", len(loadedStats))
         payload = {
             "success": True,
             "results": loadedStats
         }
     except Exception as error:
+        logger.error(f"Error resolving stats: {error}")
         payload = {
             "success": False,
             "errors": [str(error)]
@@ -93,6 +84,7 @@ def resolve_stats(_, info):
 def resolve_filteredStats(*_, name=None):
     try:
         loadedStats = user_stats(name)
+        logger.info("Number of user stats found:", len(loadedStats))
         payload = {
             "success": True,
             "results": loadedStats
@@ -201,7 +193,7 @@ def user_stats(username):
     return stats
 
 
-# rest endpoint for weekly to compare newly implemented graphql endpoint to
+# rest endpoint for weekly to compare to newly implemented graphql endpoint
 @app.route('/stats/weekly/', methods=['GET'])
 def weekly_user_stats(user, start, end):
     print(f"Fetching weekly stats for user: {user}, time period: {start} - {end} ")
@@ -254,14 +246,55 @@ def weekly_user_stats(user, start, end):
     return stats
 
 
-schema = make_executable_schema(type_defs, query)
-
-
 @app.errorhandler(Exception)
 def handle_error(e):
     logger.error(f"An error occurred: {e}")
     traceback.print_exc()
     return jsonify(error="An internal error occurred"), 500
+
+
+# Set the path to the schema file and load it
+schema_directory = os.path.dirname(os.path.abspath(__file__))
+schema_path = os.path.join(schema_directory, "schema.graphql")
+type_defs = load_schema_from_path(schema_path)
+logger.info("Type Definitions Loaded:", type_defs)
+
+schema = make_executable_schema(type_defs, query)
+
+
+# set up the graphql server
+@app.route('/api/graphql', methods=['POST'])
+def graphql_server():
+    logger.info("Received a POST request")
+    data = request.get_json()
+    success, result = graphql_sync(
+        schema,
+        data,
+        context_value=request,
+        debug=True
+    )
+    status_code = 200 if success else 400
+    return jsonify(result), status_code
+
+
+# Define the HTML for GraphQL Playground
+GRAPHQL_PLAYGROUND_HTML_FP = "templates/graphql_playground.html"
+with open(GRAPHQL_PLAYGROUND_HTML_FP, 'r', encoding='utf-8') as file:
+    html_content = file.read()
+
+
+# graphql playground for health check
+@app.route('/api/graphql', methods=['GET'])
+def graphql_playground():
+    return html_content, 200
+
+
+# rest endpoint serving as a health check and welcome page
+@app.route('/', methods=['GET'])
+def index():
+    exercises = db.exercises.find()
+    exercises_list = list(exercises)
+    return json_util.dumps(exercises_list)
 
 
 if __name__ == "__main__":
