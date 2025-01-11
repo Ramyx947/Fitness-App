@@ -132,10 +132,10 @@ services:
     volumes:
       - authservice-data:/app
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/auth/signup"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 3
 
   mongodb:
     image: mongo:8.0.3
