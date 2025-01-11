@@ -21,6 +21,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
+	implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("javax.validation:validation-api:2.0.1.Final")
+    implementation("org.hibernate.validator:hibernate-validator:6.1.7.Final")
 	// Micrometer Prometheus registry for exposing metrics
     implementation("io.micrometer:micrometer-registry-prometheus")
     // Spring Boot Actuator for metrics endpoint

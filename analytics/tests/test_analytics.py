@@ -32,7 +32,7 @@ def test_graphql_stats_query(client, mock_mongo):
         }
     }
     """
-    response = client.post('/api/graphql', json={'query': query})
+    response = client.post('/analytics/graphql', json={'query': query})
     assert response.status_code == 200
 
     # Parse the response data
@@ -97,7 +97,7 @@ def test_graphql_filtered_stats_query(client, mock_mongo):
     ])
 
     # Execute the GraphQL query
-    response = client.post('/api/graphql', json={'query': query, 'variables': variables})
+    response = client.post('/analytics/graphql', json={'query': query, 'variables': variables})
     assert response.status_code == 200
 
     # Parse the response data
@@ -163,7 +163,7 @@ def test_graphql_weekly_query(client, mock_mongo):
     ])
 
     # Execute the GraphQL query
-    response = client.post('/api/graphql', json={'query': query, 'variables': variables})
+    response = client.post('/analytics/graphql', json={'query': query, 'variables': variables})
     assert response.status_code == 200
 
     # Parse the response data

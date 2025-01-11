@@ -36,7 +36,7 @@ const TrackExercise = ({ currentUser, trackExercise }) => {
 
         try {
             const response = await trackExercise(dataToSubmit);
-            console.log(response.data);
+            console.log('trackExercise::', response.data);
 
             setState({
                 exerciseType: '',

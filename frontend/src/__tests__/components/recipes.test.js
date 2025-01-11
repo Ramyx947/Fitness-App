@@ -21,7 +21,7 @@ describe('Login Component', () => {
     });
 
     it('Should render fallback page when request fails', async () => {
-        mock.onPost('http://localhost:5051/api/graphql').reply(500);
+        mock.onPost('http://localhost:5051/recipes/graphql').reply(500);
 
         await act(async () => {
             render(
@@ -35,7 +35,7 @@ describe('Login Component', () => {
     });
 
     it('Should render fallback page when there are no recipes', async () => {
-        mock.onPost('http://localhost:5051/api/graphql').reply(200, {
+        mock.onPost('http://localhost:5051/recipes/graphql').reply(200, {
             data: { recipes: [] },
         });
 
@@ -51,7 +51,7 @@ describe('Login Component', () => {
     });
 
     it('Should render recipe when there are recipes', async () => {
-        mock.onPost('http://localhost:5051/api/graphql').reply(200, {
+        mock.onPost('http://localhost:5051/recipes/graphql').reply(200, {
             data: {
                 recipes: {
                     results: [{ id: 1, recipeName: 'test-recipe-1', ingredients: [{ itemName: 'test-item-1', amount: 100 }] }],

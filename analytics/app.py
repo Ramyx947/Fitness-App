@@ -3,7 +3,7 @@ import logging
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from pymongo import MongoClient
-from flask_cors import CORS
+# from flask_cors import CORS
 from bson import json_util
 import os
 from datetime import datetime, timedelta
@@ -19,28 +19,33 @@ app = Flask(__name__)
 metrics = PrometheusMetrics(app)
 
 # Set up CORS
-env = os.getenv('NODE_ENV', 'development')
+# env = os.getenv('NODE_ENV', 'development')
 
-allowed_origins = {
-    "development": [
-        "http://localhost:3000",  # Frontend
-        "http://localhost",
-        "http://localhost:5300",  # Activity Tracking Service
-        "http://localhost:5050",  # Analytics Service
-        "http://localhost:5051",  # Recipes Service
-        "http://localhost:8080",  # Auth Service
-        "http://localhost:50"  # CI pipeline port
-    ],
-    "production": [
-        "https://fitapp.co.uk"  # Main production domain
-    ]
-}
+# allowed_origins = {
+#     "development": [
+#         "http://localhost:3000",  # Frontend
+#         "http://localhost",
+#         "http://localhost:5300",  # Activity Tracking Service
+#         "http://localhost:5050",  # Analytics Service
+#         "http://localhost:5051",  # Recipes Service
+#         "http://localhost:8080",  # Auth Service
+#         "http://localhost:50"  # CI pipeline port
+#     ],
+#     "production": [
+#         "https://fitapp.co.uk"  # Main production domain
+#     ]
+# }
 
-CORS(
-    app,
-    resources={r"/*": {"origins": "*"}},
-    methods=["GET", "HEAD", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"]
-)
+# CORS(app, resources={r"/analytics/.*": {"origins": "http://localhost:3000"}})
+
+# @app.before_request
+# def handle_preflight():
+#     if request.method == 'OPTIONS':
+#         response = make_response()
+#         response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
+#         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+#         response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+#         return response
 
 load_dotenv()
 title = "Weekly Exercise Tracker Statistics"
@@ -257,13 +262,13 @@ def handle_error(e):
 schema_directory = os.path.dirname(os.path.abspath(__file__))
 schema_path = os.path.join(schema_directory, "schema.graphql")
 type_defs = load_schema_from_path(schema_path)
-logger.info("Type Definitions Loaded:", type_defs)
+logger.info("Type Definitions Loaded: %s", type_defs)
 
 schema = make_executable_schema(type_defs, query)
 
 
 # set up the graphql server
-@app.route('/api/graphql', methods=['POST'])
+@app.route('/analytics/graphql', methods=['POST', 'OPTIONS'])
 def graphql_server():
     logger.info("Received a POST request")
     data = request.get_json()
@@ -284,7 +289,7 @@ with open(GRAPHQL_PLAYGROUND_HTML_FP, 'r', encoding='utf-8') as file:
 
 
 # graphql playground for health check
-@app.route('/api/graphql', methods=['GET'])
+@app.route('/analytics/graphql', methods=['GET'])
 def graphql_playground():
     return html_content, 200
 

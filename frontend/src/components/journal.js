@@ -34,7 +34,7 @@ const Journal = ({ currentUser }) => {
                 end: moment(endDate).format('YYYY-MM-DD'),
             };
 
-            const response = await axios.post('http://localhost:5050/api/graphql', {
+            const response = await axios.post('/api/analytics/graphql', {
                 query,
                 variables,
             });

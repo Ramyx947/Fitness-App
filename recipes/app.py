@@ -3,7 +3,7 @@ import logging
 from ariadne import MutationType, QueryType, graphql_sync, load_schema_from_path, make_executable_schema
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
-from flask_cors import CORS
+# from flask_cors import CORS
 from pymongo import MongoClient
 from prometheus_flask_exporter import PrometheusMetrics
 
@@ -30,11 +30,16 @@ allowed_origins = {
     ]
 }
 
-CORS(
-    app,
-    resources={r"/*": {"origins": "*"}},
-    methods=["GET", "HEAD", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"]
-)
+# CORS(app, resources={r"/*": {"origins": allowed_origins.get(env, [])}}, supports_credentials=True)
+
+# @app.before_request
+# def handle_preflight():
+#     if request.method == 'OPTIONS':
+#             response = jsonify({'message': 'Preflight okay'})
+#             response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin')
+#             response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+#             response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+#             return response, 204
 
 load_dotenv()
 mongo_uri = os.getenv('MONGO_URI')
@@ -139,13 +144,14 @@ def remove_recipe(_, info, recipe):
 schema_directory = os.path.dirname(os.path.abspath(__file__))
 schema_path = os.path.join(schema_directory, "schema.graphql")
 type_defs = load_schema_from_path(schema_path)
-logger.info("Type Definitions Loaded:", type_defs)
+logger.info("Type Definitions Loaded: %s", type_defs)
+
 
 schema = make_executable_schema(type_defs, query, mutation)
 
 
 # Set up the GraphQL server
-@app.route('/api/graphql', methods=['POST'])
+@app.route('/recipes/graphql', methods=['POST', 'OPTIONS'])
 def graphql_server():
     logger.info("Received a POST request")
     data = request.get_json()
@@ -166,7 +172,7 @@ with open(GRAPHQL_PLAYGROUND_HTML_FP, 'r', encoding='utf-8') as file:
 
 
 # graphql playground for health check
-@app.route('/api/graphql', methods=['GET'])
+@app.route('/recipes/graphql', methods=['GET'])
 def graphql_playground():
     logger.info("Received a GET request")
     return html_content, 200
