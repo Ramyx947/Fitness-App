@@ -34,6 +34,7 @@ metrics.info('app_info', 'Application info', version='1.0.3')
 # initialise the query type, load the schema and make it executable
 query = QueryType()
 
+
 # GraphQL resolver for the 'stats' field
 # Aggregates overall statistics for all users from the MongoDB 'exercises' collection
 @query.field("stats")
@@ -74,6 +75,7 @@ def resolve_filteredStats(*_, name=None):
         }
     return payload
 
+
 # GraphQL resolver for the 'weekly' field
 # Fetches aggregated exercise statistics for a specific user within a given time range
 # Calls the helper function 'get_weekly_stats' to query the MongoDB database
@@ -101,6 +103,7 @@ def resolve_weekly(_, info, user, start, end):
             "results": [],
             "errors": [str(error) if str(error) else "Unknown error occurred."]
         }
+
 
 # Fetches overall exercise stats grouped by user and exercise type
 def stats():
@@ -136,6 +139,7 @@ def stats():
 
     stats = list(db.exercises.aggregate(pipeline))
     return stats
+
 
 # Function to fetch user-specific stats
 def user_stats(username):
@@ -177,6 +181,7 @@ def user_stats(username):
     stats = list(db.exercises.aggregate(pipeline))
     return stats
 
+
 # rest endpoint for weekly to compare to newly implemented graphql endpoint
 def weekly_user_stats_route():
     user = request.args.get("user")
@@ -192,6 +197,7 @@ def weekly_user_stats_route():
     except Exception as e:
         logger.error(f"Error fetching weekly stats: {e}")
         return jsonify({"error": str(e), "success": False}), 500
+
 
 # Helper function to fetch weekly exercise statistics for a specific user within a date range
 # Queries the MongoDB 'exercises' collection using an aggregation pipeline
@@ -246,6 +252,7 @@ def get_weekly_stats(user, start, end):
         logger.error(f"Error during aggregation: {e}")
         return []
 
+
 # Global error handler for unhandled exceptions
 # Logs the error with traceback details and returns a generic 500 error response
 @app.errorhandler(Exception)
@@ -254,6 +261,7 @@ def handle_error(e):
     traceback.print_exc()
     return jsonify(error="An internal error occurred"), 500
 
+
 # Set the path to the schema file and load it
 schema_directory = os.path.dirname(os.path.abspath(__file__))
 schema_path = os.path.join(schema_directory, "schema.graphql")
@@ -261,6 +269,7 @@ type_defs = load_schema_from_path(schema_path)
 logger.info("Type Definitions Loaded: %s", type_defs)
 
 schema = make_executable_schema(type_defs, query)
+
 
 @app.route('/analytics/graphql', methods=['POST', 'OPTIONS'])
 def graphql_server():
@@ -275,15 +284,18 @@ def graphql_server():
     status_code = 200 if success else 400
     return jsonify(result), status_code
 
+
 # Define the HTML for GraphQL Playground
 GRAPHQL_PLAYGROUND_HTML_FP = "templates/graphql_playground.html"
 with open(GRAPHQL_PLAYGROUND_HTML_FP, 'r', encoding='utf-8') as file:
     html_content = file.read()
 
+
 # graphql playground for health check
 @app.route('/analytics/graphql', methods=['GET'])
 def graphql_playground():
     return html_content, 200
+
 
 # rest endpoint serving as a health check and welcome page
 @app.route('/', methods=['GET'])
@@ -291,6 +303,7 @@ def index():
     exercises = db.exercises.find()
     exercises_list = list(exercises)
     return json_util.dumps(exercises_list)
+
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5050)

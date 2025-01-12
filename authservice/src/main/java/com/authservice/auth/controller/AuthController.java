@@ -41,7 +41,7 @@ public class AuthController {
             if (passwordEncoder.matches(loginRequest.getPassword(), existingUser.getPassword())) {
                 return ResponseEntity.ok("User authenticated");
             } else {
-                System.out.println("Password mismatch for user: " + loginRequest.getUsername());
+                System.out.println("Failed to login. Check your credentials and try again.");
             }
         } else {
             System.out.println("No user found with username: " + loginRequest.getUsername());
