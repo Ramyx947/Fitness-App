@@ -10,7 +10,6 @@ const Journal = ({ currentUser }) => {
     const [endDate, setEndDate] = useState(moment().endOf('week').toDate());
     const [exercises, setExercises] = useState([]);
     const [errors, setErrors] = useState([]);
-    console.log('Journal component rendered');
     const fetchExercises = async () => {
         try {
             const query = `
@@ -35,8 +34,6 @@ const Journal = ({ currentUser }) => {
             };
 
             const response = await axios.post('/api/analytics/graphql', { query, variables });
-            console.log('Response:', response);
-
             const weeklyStats = response.data.data.weekly;
 
             if (weeklyStats && weeklyStats.success) {

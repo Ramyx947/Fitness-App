@@ -32,7 +32,6 @@ const TrackExercise = ({ currentUser, trackExercise }) => {
             duration: state.duration,
             date: state.date.toISOString(),
         };
-        console.log('Submitting data:', dataToSubmit);
 
         try {
             const response = await trackExercise(dataToSubmit);
