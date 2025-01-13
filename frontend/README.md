@@ -38,8 +38,6 @@ frontend/
 │   ├── index.js           # Entry point
 │   └── jest.setup.js      # Jest setup file for testing
 ├── .env                   # Default environment variables
-├── .env.dev               # Development environment variables
-├── .env.qa                # QA environment variables
 ├── package.json           # Project metadata and scripts
 └── Dockerfile             # Docker configuration
 
@@ -123,8 +121,6 @@ Fixing Lint Issues
 Docker Setup
 
 The Dockerfile sets up the frontend application for containerized deployment.
-
-
 ## Troubleshooting
 
 ### Common Issues
