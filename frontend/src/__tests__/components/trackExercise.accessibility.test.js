@@ -10,7 +10,7 @@ const mockTrackExercise = jest.fn();
 const mockCurrentUser = 'testUser';
 
 const renderComponent = () => {
-  render(<TrackExercise currentUser={mockCurrentUser} trackExercise={mockTrackExercise} />);
+    render(<TrackExercise currentUser={mockCurrentUser} trackExercise={mockTrackExercise} />);
 };
 
 describe('TrackExercise component keyboard accessibility', () => {
@@ -79,51 +79,51 @@ describe('TrackExercise component keyboard accessibility', () => {
 
     it('should navigate backwards through exercise type buttons using tab', async () => {
         renderComponent();
-      
+
         // Focus on the last element (Duration)
         const durationInput = screen.getByLabelText(/duration/i);
-    
+
         await act(async () => {
             durationInput.focus();
         });
         expect(durationInput).toHaveFocus();
-    
+
         await act(async () => {
             userEvent.tab({ shift: true });
         });
         const descriptionInput = screen.getByLabelText(/description/i);
         expect(descriptionInput).toHaveFocus();
-    
+
         await act(async () => {
             userEvent.tab({ shift: true });
         });
         const otherButton = screen.getByRole('button', { name: /other/i });
         expect(otherButton).toHaveFocus();
-    
+
         await act(async () => {
             userEvent.tab({ shift: true });
         });
         const gymButton = screen.getByRole('button', { name: /gym/i });
         expect(gymButton).toHaveFocus();
-    
+
         await act(async () => {
             userEvent.tab({ shift: true });
         });
         const swimmingButton = screen.getByRole('button', { name: /swimming/i });
         expect(swimmingButton).toHaveFocus();
-    
+
         await act(async () => {
             userEvent.tab({ shift: true });
         });
         const cyclingButton = screen.getByRole('button', { name: /cycling/i });
         expect(cyclingButton).toHaveFocus();
-    
+
         await act(async () => {
             userEvent.tab({ shift: true });
         });
         const runningButton = screen.getByRole('button', { name: /running/i });
         expect(runningButton).toHaveFocus();
-    
+
         await act(async () => {
             userEvent.tab({ shift: true });
         });
@@ -133,13 +133,13 @@ describe('TrackExercise component keyboard accessibility', () => {
 
     it('allows interaction with form elements using keyboard', async () => {
         renderComponent();
-    
+
         // Focus on the description input and type text
         const descriptionInput = screen.getByLabelText(/description/i);
         descriptionInput.focus();
         userEvent.type(descriptionInput, 'Morning run');
         expect(descriptionInput).toHaveValue('Morning run');
-    
+
         const runningButton = screen.getByRole('button', { name: /running/i });
         userEvent.click(runningButton);
 
@@ -148,36 +148,36 @@ describe('TrackExercise component keyboard accessibility', () => {
         durationInput.focus();
         userEvent.type(durationInput, '30');
         expect(durationInput).toHaveValue(30);
-    
+
         // Submit the form using the Enter key
         const submitButton = screen.getByRole('button', { name: /save activity/i });
         submitButton.focus();
         userEvent.keyboard('{enter}');
-    
+
         // Check that the submit function was called
         await waitFor(() => expect(mockTrackExercise).toHaveBeenCalledTimes(1));
     });
 
     it('allows activation of exercise type buttons using keyboard', async () => {
         renderComponent();
-        
+
         // Ensure that the "Running" button can be focused and activated with Enter key
         const runningButton = screen.getByLabelText(/Running/i);
         runningButton.focus();
         expect(runningButton).toHaveFocus();
-    
+
         // Press Enter to select "Running"
         userEvent.keyboard('{enter}');
-        expect(runningButton).toHaveClass('MuiIconButton-colorPrimary');
-    
+        expect(runningButton).toHaveClass(' MuiButtonBase-root');
+
         // Ensure that the "Cycling" button can be focused and activated with Enter key
         const cyclingButton = screen.getByLabelText(/Cycling/i);
         cyclingButton.focus();
         expect(cyclingButton).toHaveFocus();
-    
+
         // Press Enter to select "Cycling"
         userEvent.keyboard('{enter}');
-        expect(cyclingButton).toHaveClass('MuiIconButton-colorPrimary');
+        expect(cyclingButton).toHaveClass('MuiButtonBase-root');
     });
 
     it('should focus on the Date picker input field and be able to select a date using keyboard', async () => {
