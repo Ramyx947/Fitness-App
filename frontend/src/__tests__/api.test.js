@@ -11,6 +11,8 @@ describe('API Tests', () => {
 
     afterEach(() => {
         mock.reset();
+        jest.clearAllTimers();
+        jest.restoreAllMocks();
     });
 
     afterAll(() => {

@@ -47,7 +47,6 @@ const Journal = ({ currentUser }) => {
                 );
             }
         } catch (error) {
-            console.error('Failed to fetch exercises', error);
             setErrors([error.response ? error.response.data.error : 'No data found for the provided date range for the current user.']);
         }
     };
