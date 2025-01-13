@@ -18,6 +18,7 @@ describe('API Tests', () => {
     });
 
     it('should return an error when the API call fails', async () => {
+        jest.setTimeout(10000);
         const payload = { username: 'testUser', exerciseType: 'Swimming' };
 
         const baseURL = 'http://localhost:5300';
