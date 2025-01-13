@@ -16,9 +16,9 @@
     - [Prerequisites](#prerequisites)
     - [Starting a new devcontainer](#starting-a-new-dev-container)
     - [Database Configuration](#database-configuration)
-    - [Running the app locally](#running-the-app-locally)
-          - [Without Docker Compose](#without-docker-compose)
-          - [Using Docker Compose](#using-docker-compose)
+- [Running the app locally](#running-the-app-locally)
+    - [Without Docker Compose](#without-docker-compose)
+    - [Using Docker Compose](#using-docker-compose)
 - [API overview](#api-overview)
     - [REST APIs](#rest-apis)
     - [GraphQL APIs](#graphql-apis)
@@ -192,9 +192,9 @@ MongoDB is used for data persistence, with each microservice having its own coll
 - RecipesService: Stores recipes and nutritional information.
 - MongoDB is set up using Docker and configured with authentication for security. Connection details are managed through environment variables.
 
-#### Running the App Locally:
+### Running the App Locally:
 
-##### Without Docker Compose
+#### Without Docker Compose
 
 **Start Activity Tracking Service:**
 ```sh
@@ -239,8 +239,34 @@ db.users.find().pretty()
 ```
 
 
-**Using Docker Compose**
+**Using Docker and Docker Compose**
 
+Open Docker Desktop and ensure all containers are up and running.
+
+Inside the repository, within the DevContainer environment, run:
+
+`docker-compose -f docker-compose.develop.yml up --build`
+
+Wait until all services are initialized.
+
+If you encounter errors in specific microservices, follow these steps:
+
+- Navigate into the microservice folder, install dependencies, and check for any issues.
+- run the tests to identify any issues,
+- check building logs
+- Run production builds if needed and verify functionality.
+
+Once resolved, return to the root directory and run the following commands to restart:
+
+```sh
+docker-compose -f docker-compose.develop.yml down
+docker-compose down --volumes --remove-orphans
+docker-compose -f docker-compose.develop.yml up --build
+```
+
+After successful build, open the frontend at `http://localhost:80`. NGINX will redirect you to `http://localhost/login`, where you can log in or sign up.
+
+**Different environments**
 - Development Mode:
 ```sh
 docker-compose -f docker-compose.develop.yml up --build
