@@ -28,6 +28,9 @@
     - [Secure storing of sensitive credentials](#secure-storage-of-sensitive-credentials)
     - [Dynamic generation of environment variables](#dynamic-generation-of-environment-variables)
     - [Dependabot](#dependabot-integration)
+    - [Monitoring and analytics](#monitoring-and-analytics)
+        - [Prometheus](#prometheus-scraping-metrics)
+        - [Grafana](#grafana)
 
 ### Project Overview
 
@@ -423,17 +426,35 @@ The workflow triggers on:
     - gradle
 
 ### Monitoring and analytics
-[Back to Table of Contents](#table-of-contents)
 
 We use prometheus to collect, store and query metrics from the microservices in the application.
-Grafana is used as the visualization platform that integrated Promtheus to create dashboard for monitoring and analyzing the collected metrics.
 
-To access the dashboard do the following:
+#### Prometheus
+
+Prometheus periodically scrapes metrics from the configured targets in its `prometheus.yml` file.
+
+These targets include:
+- Frontend (frontend:80)
+- Activity Tracking (activity-tracking:5300)
+- Analytics (analytics:5050)
+- Authentication Service (authservice:8080)
+
+The `metrics_path` is specified where applicable (e.g., `/actuator/prometheus` for the authservice) to indicate the endpoint Prometheus should scrape.
+
+**Accessing Prometheus UI:**
+- make sure the container is running with no errors in Docker and
+- navigate to `http://localhost:9090`. This is the default Prometheus web interface
+
+#### Grafana
+- is used as the visualization platform that integrated Promtheus to create dashboard for monitoring and analyzing the collected metrics.
+
+**Accessing Grafana dashboard:**
 - `docker compose up --build`
 - `http://localhost:8081/login`
 - `username=admin, password=cfgmla23`
 
 In the top left corner, click on the navigation bar, then click on Dashboard.
 You will see a dashboard called Application Dashboard.
+
 
 [Back to Table of Contents](#table-of-contents)

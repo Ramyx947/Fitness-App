@@ -9,7 +9,7 @@ const Recipes = ({ currentUser }) => {
     const [recipes, setRecipes] = useState([]);
 
     useEffect(() => {
-        const url = 'http://localhost:5051/api/graphql';
+        const url = 'http://localhost:5051/recipes/graphql';
         axios({
             method: 'post',
             url,

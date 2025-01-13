@@ -1,95 +1,90 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
-import Login from '../../../src/components/login';
-import axios from "axios";
-import MockAdapter from "axios-mock-adapter";
+import { renderWithRouter, screen } from "../../../src/utils/test-utils";
+import Login from "../../../src/components/login";
+import {
+  setupAuthMock,
+  fillAndSubmitForm,
+  expectErrorMessage,
+  expectCallbackNotCalled,
+  expectCallbackCalledWith,
+} from "../../../src/utils/authTest";
 
 describe("Login Component", () => {
-  let mock;
   const onLoginMock = jest.fn();
+  let mock;
 
-  beforeAll(() => {
-    mock = new MockAdapter(axios);
-  });
-
-  afterEach(() => {
+  beforeEach(() => {
+    mock = setupAuthMock();
     mock.reset();
-  });
-
-  afterAll(() => {
-    mock.restore();
+    onLoginMock.mockClear();
   });
 
   it("should render the login form", () => {
-    render(
-      <MemoryRouter>
-        <Login onLogin={onLoginMock} />
-      </MemoryRouter>
-    );
+    renderWithRouter(<Login onLogin={onLoginMock} />);
 
     expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /login/i })).toBeInTheDocument();
+    expect(screen.getByText(/Don't have an account\?/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /sign up/i })).toBeInTheDocument();
   });
 
-  it("should display error message for invalid credentials", async () => {
-    // Mocking an unsuccessful login response with status 401
-    mock.onPost(`${process.env.REACT_APP_API_URL || "http://localhost:8080"}/api/auth/login`).reply(401);
-  
-    render(
-      <MemoryRouter>
-        <Login onLogin={onLoginMock} />
-      </MemoryRouter>
-    );
-  
-    // Simulate user input
-    fireEvent.change(screen.getByLabelText(/username/i), { target: { value: "wrongUser" } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: "wrongPass" } });
-    fireEvent.click(screen.getByRole("button", { name: /login/i }));
-  
-    const errorMessage = await screen.findByText((content) => {
-      return content.includes("Invalid credentials");
+  it("should submit the form successfully and call onLogin with correct parameters", async () => {
+    mock.onPost("/api/auth/login").reply(200, { username: "correctUser" });
+
+    renderWithRouter(<Login onLogin={onLoginMock} />);
+
+    fillAndSubmitForm({
+      username: "correctUser",
+      password: "correctPass",
+      submitButtonLabel: "Login",
     });
-  
-    expect(errorMessage).toBeInTheDocument();
+
+    await expectCallbackCalledWith(onLoginMock, "correctUser");
   });
 
+  it("should display an error message for invalid credentials (401 Unauthorized)", async () => {
+    mock.onPost("/api/auth/login").reply(401);
 
-  it("should call onLogin function with correct username on successful login", async () => {
-    // Mocking a successful login response
-    mock.onPost("http://localhost:8080/api/auth/login").reply(200);
+    renderWithRouter(<Login onLogin={onLoginMock} />);
 
-    render(
-      <MemoryRouter>
-        <Login onLogin={onLoginMock} />
-      </MemoryRouter>
-    );
+    fillAndSubmitForm({
+      username: "wrongUser",
+      password: "wrongPass",
+      submitButtonLabel: "Login",
+    });
 
-    // Simulate user input
-    fireEvent.change(screen.getByLabelText(/username/i), { target: { value: "correctUser" } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: "correctPass" } });
-    fireEvent.click(screen.getByRole("button", { name: /login/i }));
-
-    // Ensure onLogin was called with the correct username
-    await screen.findByRole("button", { name: /login/i });
-    expect(onLoginMock).toHaveBeenCalledWith("correctUser");
+    await expectErrorMessage("Unauthorized access. Please check your credentials.");
+    expectCallbackNotCalled(onLoginMock);
   });
 
-  it("should display error message when login request fails", async () => {
-    mock.onPost("http://localhost:8080/api/auth/login").networkError();
+  it("should display an error message when login request fails with a network error", async () => {
+    mock.onPost("/api/auth/login").networkError();
 
-    render(
-      <MemoryRouter>
-        <Login onLogin={onLoginMock} />
-      </MemoryRouter>
-    );
+    renderWithRouter(<Login onLogin={onLoginMock} />);
 
-    fireEvent.change(screen.getByLabelText(/username/i), { target: { value: "user" } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: "pass" } });
-    fireEvent.click(screen.getByRole("button", { name: /login/i }));
+    fillAndSubmitForm({
+      username: "networkUser",
+      password: "networkPass",
+      submitButtonLabel: "Login",
+    });
 
-    const errorMessage = await screen.findByText(/failed to login/i);
-    expect(errorMessage).toBeInTheDocument();
+    await expectErrorMessage("Network error. Please check your connection and try again.");
+    expectCallbackNotCalled(onLoginMock);
+  });
+
+  it("should display an error message for internal server error (500)", async () => {
+    mock.onPost("/api/auth/login").reply(500, { message: "Internal server error" });
+
+    renderWithRouter(<Login onLogin={onLoginMock} />);
+
+    fillAndSubmitForm({
+      username: "user500",
+      password: "pass500",
+      submitButtonLabel: "Login",
+    });
+
+    await expectErrorMessage("Internal server error. Please try again later.");
+    expectCallbackNotCalled(onLoginMock);
   });
 });

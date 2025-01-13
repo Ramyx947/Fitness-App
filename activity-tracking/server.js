@@ -1,11 +1,11 @@
 const express = require('express');
-const cors = require('cors');
+// const cors = require('cors');
 const mongoose = require('mongoose');
 const promClient = require('prom-client');
 const helmet = require("helmet");
 require('dotenv').config(); 
-const config = require('./config.json');
-const corsConfig = require('./config');
+// const config = require('./config.json');
+// const corsConfig = require('./config');
 
 const { LogCategory } = require("./logging");
 const log = new LogCategory("activity-tracking-server.js");
@@ -13,35 +13,27 @@ const log = new LogCategory("activity-tracking-server.js");
 
 const app = express();
 const port = process.env.PORT || 5300;
-const mongoUri = process.env.MONGO_URI || config.mongoUri;
-const mongoDb = process.env.MONGO_DB || config.mongoDb;
+const mongoUri = process.env.MONGO_URI || 'mongodb://root:cfgmla23@mongodb:27017/activity?authSource=admin'
+const mongoDb = process.env.MONGO_DB || 'activity'
 
 // Configure CORS
-const corsOptions = {
-  origin: function (origin, callback) {
-    const env = process.env.NODE_ENV || 'development';
-    const allowedOrigins = corsConfig[env].allowedOrigins;
-
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-      callback(null, true); // Allow the request
-    } else {
-      callback(new Error('Not allowed by CORS: ' + origin)); // Deny the request
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
-  credentials: true // Allow credentials (cookies, authorization headers, etc.)
-};
+// const corsOptions = {
+//   origin: '*', // Allow all origins for testing
+//   methods: ['GET', 'POST', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+//   credentials: true,
+// };
+// app.use(cors(corsOptions));
+// app.options('*', cors(corsOptions));
 
 // Middleware setup
 app.use(helmet());
-app.use(cors(corsOptions));
 app.use(express.json());
 
 // Connect to MongoDB only if not in test environment
 if (process.env.NODE_ENV !== 'test' && mongoose.connection.readyState === 0) { // Check if not already connected and not testing
   mongoose
-    .connect(`${mongoUri}/${mongoDb}`, {
+    .connect(mongoUri, {
       useNewUrlParser: true,
       dbName: mongoDb,
       useUnifiedTopology: true,
@@ -76,6 +68,10 @@ app.get('/metrics', async (req, res) => {
 
 // Routes
 const exercisesRouter = require('./routes/exercises');
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 app.use('/exercises', exercisesRouter);
 
 // Correct Error handling middleware

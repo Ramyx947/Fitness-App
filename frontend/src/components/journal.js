@@ -10,23 +10,22 @@ const Journal = ({ currentUser }) => {
     const [endDate, setEndDate] = useState(moment().endOf('week').toDate());
     const [exercises, setExercises] = useState([]);
     const [errors, setErrors] = useState([]);
-
     const fetchExercises = async () => {
         try {
             const query = `
-        query GetWeeklyStats($user: String!, $start: String!, $end: String!) {
-          weekly(user: $user, start: $start, end: $end) {
-            success
-            errors
-            results {
-              exercises {
-                exerciseType
-                totalDuration
-              }
-            }
-          }
-        }
-      `;
+                query GetWeeklyStats($user: String!, $start: String!, $end: String!) {
+                    weekly(user: $user, start: $start, end: $end) {
+                        success
+                        errors
+                        results {
+                            exercises {
+                                exerciseType
+                                totalDuration
+                            }
+                        }
+                    }
+                }
+            `;
 
             const variables = {
                 user: currentUser,
@@ -34,22 +33,20 @@ const Journal = ({ currentUser }) => {
                 end: moment(endDate).format('YYYY-MM-DD'),
             };
 
-            const response = await axios.post('http://localhost:5050/api/graphql', {
-                query,
-                variables,
-            });
-
+            const response = await axios.post('/api/analytics/graphql', { query, variables });
             const weeklyStats = response.data.data.weekly;
 
-            if (weeklyStats.success) {
-                // Extract exercises from results
-                const allExercises = weeklyStats.results.flatMap((result) => result.exercises);
+            if (weeklyStats && weeklyStats.success) {
+                const allExercises = (weeklyStats.results || []).flatMap((result) => result.exercises || []);
                 setExercises(allExercises);
             } else {
-                setErrors(weeklyStats.errors.length > 0 ? weeklyStats.errors : ['An unknown error occurred. Please try again later.']);
+                setErrors(
+                    weeklyStats?.errors?.length > 0
+                        ? weeklyStats.errors
+                        : ['An unknown error occurred. Please try again later.']
+                );
             }
         } catch (error) {
-            console.error('Failed to fetch exercises', error);
             setErrors([error.response ? error.response.data.error : 'No data found for the provided date range for the current user.']);
         }
     };

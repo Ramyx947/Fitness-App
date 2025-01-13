@@ -23,7 +23,16 @@ router.get('/', limiter, async (req, res) => {
 // POST: Add a new exercise
 router.post('/add', limiter, async (req, res) => {
   try {
-    const { username, exerciseType, description, duration, date } = req.body;
+    const { 
+      username = 'defaultUser',  // Default user if not provided
+      exerciseType = 'Running',  // Default type if missing
+      description = '',
+      duration,
+      date = new Date().toISOString()  // Current date if not provided
+    } = req.body;
+    if (!duration || !Number.isInteger(duration)) {
+      return res.status(400).json({ error: 'Duration must be a positive integer' });
+    }
     const newExercise = new Exercise({
       username,
       exerciseType,

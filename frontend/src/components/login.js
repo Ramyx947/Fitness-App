@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import PropTypes from 'prop-types';
-import { Button, Form, Alert } from 'react-bootstrap';
+import { Button, Form } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import { loginUser } from '../api.js';
+import { getErrorMessage } from '../utils/errorHandle.js';
 
 const Login = ({ onLogin }) => {
     const [username, setUsername] = useState('');
@@ -13,49 +14,41 @@ const Login = ({ onLogin }) => {
         e.preventDefault();
 
         try {
-            // Remove hardcoded URL, use environment variable instead
-            const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
-
-            // Make the API call without assigning to response (we don't need it anywhere)
-            await axios.post(`${baseUrl}/api/auth/login`, {
-                username,
-                password,
-            });
-
-            // on successful login
-            onLogin(username);
+            const response = await loginUser({ username, password });
+            onLogin(response.data.username);
         } catch (err) {
-            // Differentiate between different error types
-            if (err.response) {
-                // Server responded with a status other than 2xx
-                if (err.response.status === 401) {
-                    setError('Invalid credentials');
-                } else {
-                    setError(`Error: ${err.response.status} - ${err.response.data.message || 'Unexpected error'}`);
-                }
-            } else if (err.request) {
-                // Request was made but no response was received
-                setError('Network error, please try again later.');
-            } else {
-                // Something else caused the error
-                setError('Failed to login due to an unexpected error.');
-            }
+            const errorMsg = getErrorMessage(err, 'Login');
+            setError(errorMsg);
         }
     };
 
     return (
         <div className="login-container">
-            {error && <Alert variant="danger">{error}</Alert>}
+            {error && (
+                <div className="error-message" data-testid="error-alert">
+                    {error}
+                </div>
+            )}
 
             <Form onSubmit={handleLogin}>
                 <Form.Group controlId="formUsername">
                     <Form.Label>Username</Form.Label>
-                    <Form.Control type="text" placeholder="Enter username" value={username} onChange={(e) => setUsername(e.target.value)} />
+                    <Form.Control
+                        type="text"
+                        placeholder="Enter username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
                 </Form.Group>
 
                 <Form.Group controlId="formPassword">
                     <Form.Label>Password</Form.Label>
-                    <Form.Control type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                    <Form.Control
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
                 </Form.Group>
 
                 <Button variant="primary" type="submit" style={{ marginTop: '20px' }}>
@@ -70,8 +63,8 @@ const Login = ({ onLogin }) => {
     );
 };
 
-export default Login;
-
 Login.propTypes = {
     onLogin: PropTypes.func.isRequired,
 };
+
+export default Login;
