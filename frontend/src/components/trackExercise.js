@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
-import { Button, Form } from 'react-bootstrap'
+import { Button, Form } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import IconButton from '@mui/material/IconButton';
 import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
@@ -10,7 +10,7 @@ import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { getErrorMessage } from '../utils/errorHandle.js';;
+import { getErrorMessage } from '../utils/errorHandle.js';
 
 const TrackExercise = ({ currentUser, trackExercise }) => {
     const [state, setState] = useState({
@@ -71,53 +71,83 @@ const TrackExercise = ({ currentUser, trackExercise }) => {
                 <div style={{ marginBottom: '20px' }}>
                     <IconButton
                         aria-label="Running"
-                        color={state.exerciseType === 'Running' ? 'primary' : 'default'}
                         onClick={(e) => {
                             e.stopPropagation(); // Prevent propagation to parent
                             setState({ ...state, exerciseType: 'Running' });
                         }}
                     >
-                        <DirectionsRunIcon fontSize="large" />
+                        <DirectionsRunIcon
+                            fontSize="large"
+                            color={state.exerciseType === 'Running' ? 'primary' : 'default'}
+                            sx={{
+                                stroke: '#F0F0F0',
+                                strokeWidth: '1px',
+                            }}
+                        />
                     </IconButton>
                     <IconButton
                         aria-label="Cycling"
-                        color={state.exerciseType === 'Cycling' ? 'primary' : 'default'}
                         onClick={(e) => {
                             e.stopPropagation(); // Prevent propagation to parent
                             setState({ ...state, exerciseType: 'Cycling' });
                         }}
                     >
-                        <DirectionsBikeIcon fontSize="large" />
+                        <DirectionsBikeIcon
+                            fontSize="large"
+                            color={state.exerciseType === 'Cycling' ? 'primary' : 'default'}
+                            sx={{
+                                stroke: '#F0F0F0',
+                                strokeWidth: '1px',
+                            }}
+                        />
                     </IconButton>
                     <IconButton
                         aria-label="Swimming"
-                        color={state.exerciseType === 'Swimming' ? 'primary' : 'default'}
                         onClick={(e) => {
                             e.stopPropagation(); // Prevent propagation to parent
                             setState({ ...state, exerciseType: 'Swimming' });
                         }}
                     >
-                        <PoolIcon fontSize="large" />
+                        <PoolIcon
+                            fontSize="large"
+                            color={state.exerciseType === 'Swimming' ? 'primary' : 'default'}
+                            sx={{
+                                stroke: '#F0F0F0',
+                                strokeWidth: '1px',
+                            }}
+                        />
                     </IconButton>
                     <IconButton
                         aria-label="Gym"
-                        color={state.exerciseType === 'Gym' ? 'primary' : 'default'}
                         onClick={(e) => {
                             e.stopPropagation(); // Prevent propagation to parent
                             setState({ ...state, exerciseType: 'Gym' });
                         }}
                     >
-                        <FitnessCenterIcon fontSize="large" />
+                        <FitnessCenterIcon
+                            fontSize="large"
+                            color={state.exerciseType === 'Gym' ? 'primary' : 'default'}
+                            sx={{
+                                stroke: '#F0F0F0',
+                                strokeWidth: '1px',
+                            }}
+                        />
                     </IconButton>
                     <IconButton
                         aria-label="Other"
-                        color={state.exerciseType === 'Other' ? 'primary' : 'default'}
                         onClick={(e) => {
                             e.stopPropagation(); // Prevent propagation to parent
                             setState({ ...state, exerciseType: 'Other' });
                         }}
                     >
-                        <HelpOutlineIcon fontSize="large" />
+                        <HelpOutlineIcon
+                            fontSize="large"
+                            color={state.exerciseType === 'Other' ? 'primary' : 'default'}
+                            sx={{
+                                stroke: '#F0F0F0',
+                                strokeWidth: '1px',
+                            }}
+                        />
                     </IconButton>
                 </div>
                 <Form.Group controlId="description" style={{ marginBottom: '20px' }}>
