@@ -255,9 +255,11 @@ def get_recipe_collection(recipe, count):
 
 # Language selection function
 def get_locale():
-   return session.get('language', request.accept_languages.best_match(app.config['BABEL_SUPPORTED_LOCALES']))
+    return session.get('language', request.accept_languages.best_match(app.config['BABEL_SUPPORTED_LOCALES']))
+
 
 babel.init_app(app, locale_selector=get_locale)
+
 
 @app.route('/set_language', methods=['POST'])
 def set_language():
