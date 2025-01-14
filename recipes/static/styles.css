@@ -1,0 +1,25 @@
+/* Light mode (default theme) */
+body, header, footer {
+    background-color: white;
+    color: black;
+}
+
+/* Dark mode */
+body.dark-mode, header.dark-mode, footer.dark-mode {
+    background-color: #121212;
+    color: white;
+}
+
+/* Button to toggle dark mode */
+button {
+    background-color: #6200ea;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #3700b3;
+}
