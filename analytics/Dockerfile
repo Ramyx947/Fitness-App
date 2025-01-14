@@ -19,7 +19,7 @@ COPY pyproject.toml ./
 # Install project dependencies using Poetry (without dev dependencies)
 # Ensures Poetry installs the dependencies directly into the container's env instead of creating a virtual env 
 RUN poetry config virtualenvs.create false \
-    && poetry install --no-dev --no-interaction --no-ansi
+    && poetry install --no-interaction --no-ansi
 
 # Copy the rest of the project files into the container
 COPY . .
