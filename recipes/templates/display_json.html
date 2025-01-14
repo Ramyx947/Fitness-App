@@ -30,9 +30,36 @@
         }
     </script>
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        // Check if dark mode is already enabled based on localStorage
+        document.addEventListener('DOMContentLoaded', function () {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.querySelector('footer').classList.add('dark-mode');
+            }
+        });
+
+        // Function to toggle dark mode
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            document.querySelector('footer').classList.toggle('dark-mode');
+            // Save user's preference in localStorage
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.removeItem('theme')
+            }
+        }
+    </script>
+
 </head>
 
 <body>
+
+    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+    <!-- Button that will trigger the reading of the text aloud -->
+    <button onclick="readTextOutLoud()">Read Aloud</button>
 
     <h1>Recipe results for your search query</h1>
 
@@ -43,9 +70,6 @@
         <img src="{{ recipe.image }}" alt="{{ recipe.title }}" />
     </div>
     {% endfor %}
-
-    <!-- Button that will trigger the reading of the text aloud -->
-    <button onclick="readTextOutLoud()">Read Aloud</button>
 
     <script>
         // Flask will pass 'results' to the template, so we convert the results into a JavaScript variable
