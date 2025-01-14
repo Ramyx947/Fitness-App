@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ g.locale }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recipes</title>
+    <title>{{ _('Welcome to the Recipe App') }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script>
         // Check if dark mode is already enabled based on localStorage
@@ -33,16 +33,26 @@
 
     <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
 
-    <h1>Welcome to the recipes app!</h1>
-    <h2>Find a recipe in the Spoonacular recipe collection</h2>
-    <h3>Please enter a recipe name and a count of recipes you'd like to get returned.</h3>
+    <form action="/set_language" method="POST">
+        <label for="language">{{ _('Language:') }}</label>
+        <select name="language" id="language">
+            <option value="en" {% if g.locale == 'en' %}selected{% endif %}>English</option>
+            <option value="es" {% if g.locale == 'es' %}selected{% endif %}>Español</option>
+        </select>
+        <button type="submit">{{ _('Change Language') }}</button>
+    </form>
+
+    <h1>{{ _('Welcome to the Recipe App') }}</h1>
+    <p>{{ _('This is a multilingual app') }}</p>
+    <h2>{{ _('Find a recipe in the Spoonacular recipe collection') }}</h2>
+    <h3>{{ _('Please enter a recipe name and count') }}</h3>
 
     <form method="POST" action="/submit">
-        <label for="recipe">Recipe:</label>
+        <label for="recipe">{{ _('Recipe:') }}</label>
         <input type="text" id="recipe" name="recipe" required><br><br>
-        <label for="count">Count:</label>
+        <label for="count">{{ _('Count:') }}</label>
         <input type="number" id="count" name="count" required><br><br>
-        <button type="submit">Submit</button>
+        <button type="submit">{{ _('Submit') }}</button>
     </form>
 
     <footer>

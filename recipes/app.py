@@ -2,11 +2,13 @@ import os
 import logging
 from ariadne import MutationType, QueryType, graphql_sync, load_schema_from_path, make_executable_schema
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request, render_template
-import requests
+from flask import Flask, jsonify, request, render_template, session, redirect, url_for
 # from flask_cors import CORS
 from pymongo import MongoClient
 from prometheus_flask_exporter import PrometheusMetrics
+from flask_babel import Babel, _
+import requests
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -45,9 +47,17 @@ allowed_origins = {
 load_dotenv()
 mongo_uri = os.getenv('MONGO_URI')
 mongo_db = os.getenv('MONGO_DB')
+
 # get spoonacular api env var values
 spoonacular_api_url = os.getenv('SPOONACULAR_API_URL')
 spoonacular_api_key = os.getenv('SPOONACULAR_API_KEY')
+
+# config for flask-babel
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')  # to store session data
+app.config['BABEL_DEFAULT_LOCALE'] = 'en'  # default language
+app.config['BABEL_SUPPORTED_LOCALES'] = ['en', 'es']  # supported languages
+
+babel = Babel(app)
 
 client = MongoClient(mongo_uri)
 db = client[mongo_db]
@@ -186,7 +196,7 @@ def graphql_playground():
 # rest endpoint serving as a health check and welcome page
 @app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template('index.html', title=_('Welcome to the Recipe App'))
 
 
 # handle the form submission (POST request) where a user can specify the recipe to search for
@@ -241,6 +251,18 @@ def get_recipe_collection(recipe, count):
 
     else:
         return jsonify({"error": "Failed to fetch recipes from external API"}), 500
+
+
+# Language selection function
+def get_locale():
+   return session.get('language', request.accept_languages.best_match(app.config['BABEL_SUPPORTED_LOCALES']))
+
+babel.init_app(app, locale_selector=get_locale)
+
+@app.route('/set_language', methods=['POST'])
+def set_language():
+    session['language'] = request.form['language']
+    return redirect(url_for('index'))
 
 
 if __name__ == "__main__":
