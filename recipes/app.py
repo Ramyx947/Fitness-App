@@ -2,7 +2,8 @@ import os
 import logging
 from ariadne import MutationType, QueryType, graphql_sync, load_schema_from_path, make_executable_schema
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
+import requests
 # from flask_cors import CORS
 from pymongo import MongoClient
 from prometheus_flask_exporter import PrometheusMetrics
@@ -44,6 +45,9 @@ allowed_origins = {
 load_dotenv()
 mongo_uri = os.getenv('MONGO_URI')
 mongo_db = os.getenv('MONGO_DB')
+# get spoonacular api env var values
+spoonacular_api_url = os.getenv('SPOONACULAR_API_URL')
+spoonacular_api_key = os.getenv('SPOONACULAR_API_KEY')
 
 client = MongoClient(mongo_uri)
 db = client[mongo_db]
@@ -56,6 +60,7 @@ mutation = MutationType()
 
 
 # Define GraphQL resolver before making the schema
+# query to retrieve recipes created by the user
 @query.field("recipes")
 def resolve_recipes(_, info):
     try:
@@ -86,6 +91,7 @@ def resolve_recipes(_, info):
     return payload
 
 
+# mutation so a user can add their own recipe
 @mutation.field("addRecipe")
 def add_recipe(_, info, recipe):
     try:
@@ -113,6 +119,7 @@ def add_recipe(_, info, recipe):
     return payload
 
 
+# mutation so a user can remove a recipe that they have previously added
 @mutation.field("removeRecipe")
 def remove_recipe(_, info, recipe):
     try:
@@ -145,8 +152,6 @@ schema_directory = os.path.dirname(os.path.abspath(__file__))
 schema_path = os.path.join(schema_directory, "schema.graphql")
 type_defs = load_schema_from_path(schema_path)
 logger.info("Type Definitions Loaded: %s", type_defs)
-
-
 schema = make_executable_schema(type_defs, query, mutation)
 
 
@@ -165,7 +170,7 @@ def graphql_server():
     return jsonify(result), status_code
 
 
-# Define the HTML for GraphQL Playground
+# Define the HTML for the GraphQL Playground
 GRAPHQL_PLAYGROUND_HTML_FP = os.path.join(schema_directory, "templates", "graphql_playground.html")
 with open(GRAPHQL_PLAYGROUND_HTML_FP, 'r', encoding='utf-8') as file:
     html_content = file.read()
@@ -181,8 +186,62 @@ def graphql_playground():
 # rest endpoint serving as a health check and welcome page
 @app.route("/")
 def index():
-    return "<p>Hi and welcome to the recipes page!</p>"
+    return render_template('index.html')
+
+
+# handle the form submission (POST request) where a user can specify the recipe to search for
+# the returned recipes are retrieved from the soonacular api recipe collection
+@app.route('/submit', methods=['POST'])
+def submit():
+    recipe = request.form.get('recipe')
+    count = request.form.get('count')
+
+    if recipe and count:
+        data = get_recipe_collection(recipe, count)
+
+        # example: use for testing to avoid hitting the daily spoonacular api request quota with the free tier
+        # data = {
+        # "number": 2,
+        # "offset": 0,
+        # "results": [
+        #     {
+        #     "id": 642583,
+        #     "image": "https://img.spoonacular.com/recipes/642583-312x231.jpg",
+        #     "imageType": "jpg",
+        #     "title": "Farfalle with Peas, Ham and Cream"
+        #     },
+        #     {
+        #     "id": 715538,
+        #     "image": "https://img.spoonacular.com/recipes/715538-312x231.jpg",
+        #     "imageType": "jpg",
+        #     "title": "What to make for dinner tonight?? Bruschetta Style Pork \u0026 Pasta"
+        #     }
+        # ],
+        # "totalResults": 285
+        # }
+
+        return render_template('display_json.html', results=data["results"])
+
+    else:
+        return jsonify({"error": "Please provide both a recipe name and count"}), 400
+
+
+@app.route('/api/recipecollection', methods=['GET'])
+def get_recipe_collection(recipe, count):
+    # fetch recipes from the Spoonacular API
+    params = {
+        'apiKey': spoonacular_api_key,
+        'query': recipe,
+        'number': count
+    }
+    response = requests.get(spoonacular_api_url, params=params)
+
+    if response.status_code == 200:
+        return response.json()
+
+    else:
+        return jsonify({"error": "Failed to fetch recipes from external API"}), 500
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5051)
+    app.run(debug=False, host='0.0.0.0', port=5051)

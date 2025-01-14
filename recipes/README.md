@@ -1,5 +1,27 @@
 # Recipes service
 
+## Using the recipes app
+
+### Prerequisite: Ensure access to the Spoonacular API
+
+The Spoonacular API is used to retrieve recipes for a user request made on the homepage of the recipes app.
+The user request is made via a form submission that specifies the recipe to search for and the count of recipes to return. 
+In order to access the Spoonacular API, an API URL and API key is required, which needs to be specified in the `recipes/.env`.
+
+To obtain the API key, make an account on `https://spoonacular.com/food-api`. 
+Once logged in, go to `My Console` > `Profile & API Key` to find and copy your personal API Key. 
+
+### Run the app
+
+1. set `SPOONACULAR_API_URL="https://api.spoonacular.com/recipes/complexSearch"` in `recipes/.env` (to test the recipes app only) and in `.env` at the root of the repo to test it when spinning up all microservices via `docker compose up --build`
+2. set `SPOONACULAR_API_KEY=<YOUR API KEY, SEE EXPLANATION ABOVE>` in `recipes/.env` (to test the recipes app only) and in `.env` at the root of the repo to test it when spinning up all microservices via `docker compose up --build`
+3. make sure you are in the `recipe` directory
+4. set up the dependencies, i.e. `poetry install` (for details see ## Setup) 
+5. run `python app.py`
+6. navigate to `http://127.0.0.1:5051` in your browser (this address is also displayed in the terminal upon `python app.py`)
+7. you can now enter a `recipe` (string) and a `count` (int), click the `submit` button, and see the returned recipes (titles and images)
+
+
 ## Setup
 
 The recipes service uses poetry for dependency management.
