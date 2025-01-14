@@ -197,29 +197,28 @@ def submit():
     count = request.form.get('count')
 
     if recipe and count:
-        # data = get_recipe_collection(recipe, count)
+        data = get_recipe_collection(recipe, count)
         
-        # example
-        # use for testing to avoid hitting the daily spoonacular api request quota with the free tier
-        data = {
-        "number": 2,
-        "offset": 0,
-        "results": [
-            {
-            "id": 642583,
-            "image": "https://img.spoonacular.com/recipes/642583-312x231.jpg",
-            "imageType": "jpg",
-            "title": "Farfalle with Peas, Ham and Cream"
-            },
-            {
-            "id": 715538,
-            "image": "https://img.spoonacular.com/recipes/715538-312x231.jpg",
-            "imageType": "jpg",
-            "title": "What to make for dinner tonight?? Bruschetta Style Pork \u0026 Pasta"
-            }
-        ],
-        "totalResults": 285
-        }
+        # example: use for testing to avoid hitting the daily spoonacular api request quota with the free tier
+        # data = {
+        # "number": 2,
+        # "offset": 0,
+        # "results": [
+        #     {
+        #     "id": 642583,
+        #     "image": "https://img.spoonacular.com/recipes/642583-312x231.jpg",
+        #     "imageType": "jpg",
+        #     "title": "Farfalle with Peas, Ham and Cream"
+        #     },
+        #     {
+        #     "id": 715538,
+        #     "image": "https://img.spoonacular.com/recipes/715538-312x231.jpg",
+        #     "imageType": "jpg",
+        #     "title": "What to make for dinner tonight?? Bruschetta Style Pork \u0026 Pasta"
+        #     }
+        # ],
+        # "totalResults": 285
+        # }
 
         return render_template('display_json.html', results=data["results"])
 
