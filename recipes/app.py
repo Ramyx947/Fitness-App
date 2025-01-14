@@ -198,7 +198,7 @@ def submit():
 
     if recipe and count:
         data = get_recipe_collection(recipe, count)
-        
+
         # example: use for testing to avoid hitting the daily spoonacular api request quota with the free tier
         # data = {
         # "number": 2,
@@ -231,11 +231,11 @@ def get_recipe_collection(recipe, count):
     # fetch recipes from the Spoonacular API
     params = {
         'apiKey': spoonacular_api_key,
-        'query': recipe, 
+        'query': recipe,
         'number': count
     }
     response = requests.get(spoonacular_api_url, params=params)
-    
+
     if response.status_code == 200:
         return response.json()
 
