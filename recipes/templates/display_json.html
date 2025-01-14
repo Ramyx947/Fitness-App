@@ -5,6 +5,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recipes Results</title>
+
+    <script>
+        // Function to read text out loud using the Web Speech API
+        function readTextOutLoud() {
+            if (typeof results === 'undefined') {
+                console.error('results is not defined');
+                return;
+            }
+
+            const recipeTitles = results.map(item => item.title);
+            const speechText = `Recipe results for your search query: ${recipeTitles.join(', ')}.`;
+
+            // Create a new SpeechSynthesisUtterance object
+            const utterance = new SpeechSynthesisUtterance(speechText);
+
+            // Set options for the speech (here: language, pitch, rate)
+            utterance.lang = 'en-UK';
+            utterance.pitch = 1;
+            utterance.rate = 1;
+
+            // Speak the generated speech text
+            window.speechSynthesis.speak(utterance);
+        }
+    </script>
+
 </head>
 
 <body>
@@ -13,11 +38,20 @@
 
     <!-- Loop through the 'results' passed from Flask -->
     {% for recipe in results %}
-        <div>
-            <h2>{{ recipe.title }}</h2>
-            <img src="{{ recipe.image }}" alt="{{ recipe.title }}" />
-        </div>
+    <div>
+        <h2>{{ recipe.title }}</h2>
+        <img src="{{ recipe.image }}" alt="{{ recipe.title }}" />
+    </div>
     {% endfor %}
 
+    <!-- Button that will trigger the reading of the text aloud -->
+    <button onclick="readTextOutLoud()">Read Aloud</button>
+
+    <script>
+        // Flask will pass 'results' to the template, so we convert the results into a JavaScript variable
+        var results = {{ results | tojson }};
+    </script>
+
 </body>
+
 </html>

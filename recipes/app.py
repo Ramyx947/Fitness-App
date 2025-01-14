@@ -244,4 +244,4 @@ def get_recipe_collection(recipe, count):
 
 
 if __name__ == "__main__":
-    app.run(debug=False, host='0.0.0.0', port=5051)
+    app.run(debug=True, host='0.0.0.0', port=5051)
