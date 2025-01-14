@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipes Results</title>
+</head>
+
+<body>
+
+    <h1>Recipe results for your search query</h1>
+
+    <!-- Loop through the 'results' passed from Flask -->
+    {% for recipe in results %}
+        <div>
+            <h2>{{ recipe.title }}</h2>
+            <img src="{{ recipe.image }}" alt="{{ recipe.title }}" />
+        </div>
+    {% endfor %}
+
+</body>
+</html>
