@@ -49,7 +49,7 @@ The Activity Tracking functionality uses the MERN stack (MongoDB, Express.js, Re
 - Real-time data persistence with MongoDB
 - Integration with Prometheus and Grafana for monitoring and analytics
 
-![Screenshot](screenshots/frontpage.png)
+![track-exercise](/screenshots/track-exercise.png)
 
 [Back to Table of Contents](#table-of-contents)
 
@@ -244,11 +244,13 @@ db.users.find().pretty()
 
 **Using Docker and Docker Compose**
 
-Open Docker Desktop and ensure all containers are up and running.
+- Open Docker Desktop
 
-Inside the repository, within the DevContainer environment, run:
+- Inside the repository, within the DevContainer environment, run:
 
-`docker-compose -f docker-compose.develop.yml up --build`
+```sh
+docker-compose -f docker-compose.develop.yml up --build
+```
 
 Wait until all services are initialized.
 
@@ -425,193 +427,8 @@ The workflow triggers on:
     - pip
     - gradle
 
-### Monitoring and analytics
 [Back to Table of Contents](#table-of-contents)
 
-We use prometheus to collect, store and query metrics from the microservices in the application.
-Grafana is used as the visualization platform that integrated Promtheus to create dashboard for monitoring and analyzing the collected metrics.
-=======
-
-Open Docker Desktop and ensure all containers are up and running.
-
-Inside the repository, within the DevContainer environment, run:
-
-`docker-compose -f docker-compose.develop.yml up --build`
-
-Wait until all services are initialized.
-
-If you encounter errors in specific microservices, follow these steps:
-
-- Navigate into the microservice folder, install dependencies, and check for any issues.
-- run the tests to identify any issues,
-- check building logs
-- Run production builds if needed and verify functionality.
-
-Once resolved, return to the root directory and run the following commands to restart:
-
-```sh
-docker-compose -f docker-compose.develop.yml down
-docker-compose down --volumes --remove-orphans
-docker-compose -f docker-compose.develop.yml up --build
-```
-
-After successful build, open the frontend at `http://localhost:80`. NGINX will redirect you to `http://localhost/login`, where you can log in or sign up.
-
-**Different environments**
-- Development Mode:
-```sh
-docker-compose -f docker-compose.develop.yml up --build
-```
-- Production Mode:
-```sh
-docker-compose up --build
-```
-- Shut Down Services:
-```sh
-docker-compose down
-```
-
-**Connect to MongoDB**
-
-```sh
-mongosh -u root -p cfgmla23 --authenticationDatabase admin --host localhost --port 27017
-```
-OR
-
-```sh
-docker exec -it team-3-mla-app-mongodb-1 mongosh -u root -p cfgmla23 --authenticationDatabase admin
-```
-
-[Back to Table of Contents](#table-of-contents)
-
-### API Overview
-
-
-The APIs are using different communication protocols:
-
-#### REST APIs:
-
-1. **Auth Service (REST API)**
-   Handles user authentication and registration.
-   - **Base URL**: `/api/auth`
-   - **Example Endpoints**:
-     - `POST /signup`: Registers a new user.
-          **Possible Response**:
-              - `200 OK`: User registered successfully.
-              - `400 Bad Request`: Username already exists.
-     - `POST /login`: Authenticates an existing user.
-          **Possible Response**:
-          - `200 OK`: User authenticated.
-          - `400 Unauthorized`: Invalid credentials.
-
-2. **Activity Tracking Service (REST API)**
-   Manages user activity logs and exercise tracking.
-   - **Base URL**: `/api/activity`
-   - **Example Endpoints**:
-      - `POST /exercises`: Add a new activity log.
-      - `GET /exercises`: Retrieve activity logs.
-
-#### GraphQL APIs:
-3. **Analytics Service (GraphQL API)**
-   Provides fitness analytics through GraphQL queries.
-   - **Base URL**: `/api/analytics`
-   - **Example Query**:
-     - `POST /graphql` with query:
-     ```sh
-      query {
-          weekly(user: "john_doe", start: "2025-01-01", end: "2025-01-07") {
-              success
-                  results {
-                  username,
-                  exercises {
-                      exerciseType
-                      totalDuration
-                  }
-              }
-          }
-      }
-      ```
-
-4. **Recipes Service (GraphQL API)**
-   Suggests recipes based on user preferences using a GraphQL API for customized queries.
-   - **Base URL**: `/api/recipes`
-   - **Example Query**:
-     - `POST /graphql` with query:
-     ```sh
-      query {
-          recipes {
-              success,
-              results {
-                  recipeName
-                  ingredients
-                  calories
-                  nutrients
-              }
-          }
-      }
-      ```
-
-[Back to Table of Contents](#table-of-contents)
-
-### Deployment
-
-The application is containerized using Docker and can be deployed on any platform that supports Docker containers.
-
-Deployment Workflow
-The deployment process is managed using a CI/CD pipeline in GitHub Actions. This ensures consistent, reliable builds and deployments across environments.
-
-#### Triggers:
-
-The workflow triggers on:
-- Push or pull request to develop or CI-workflow branches.
-- Manual execution using workflow_dispatch.
-
-#### Stages:
-
-**Linting**
-- Linting is run for all services using npm, flake8, or other service-specific tools.
-- Ensures code consistency and identifies potential errors early.
-
-**Tests**
-- Runs all unit, integration tests for all services (frontend, activity-tracking, analytics, recipes) using their respective test frameworks.
-
-**Docker Image Build**
-- Docker images for all microservices are built using docker buildx.
-- Tags images with latest for use in development and testing environments
-**Notes:**
-- Images are not pushed to Docker Hub during the develop workflow. Instead, they are used within the testing branch to validate functionality and identify any runtime issues.
-- By identifying and addressing vulnerabilities in the testing phase, we can avoid delays or last-minute fixes during production deployment.
-- It ensures a more secure pipeline while providing developers sufficient time to address issues flagged by vulnerability scans.
-- When the pipeline progresses to production-ready branches, these images will be rebuilt and pushed to Docker Hub after passing all tests and scans.
-
-**Vulnerability Scanning:**
-- Scans Docker images for HIGH and CRITICAL vulnerabilities using Trivy
-- This step ensures that potential security issues in base images, dependencies, or custom configurations are flagged early in the development cycle.
-
-**Environment Variable Management**
-
-- Dynamically generates the `.env` file during the workflow.
-- Injects sensitive data (e.g., MongoDB credentials) from GitHub Secrets into the runtime environment.
-
-**Post-Execution Cleanup**
-- The workflows include cleanup steps to ensure that temporary files (such as .env files or other generated artifacts) are securely removed after the jobs complete. This reduces the risk of accidental exposure of sensitive data.
-
-#### Secure Storage of Sensitive Credentials
-- we are using GitHub Secrets for storing sensitive credentials such as MongoDB username and password.
-
-#### Dynamic Generation of Environment Variables
--During CI/CD, required variables (e.g., MONGO_URI, REACT_APP_* URLs) are generated dynamically and injected into the runtime environment
-- This ensures:
-    - No sensitive information is persisted in the repository or build artifacts
-    - Flexibility across different environments (development, testing, production)
-
-#### Dependabot Integration:
-
-- Dependabot monitors dependencies for all services daily.
-- Automatically opens pull requests to update outdated dependencies for:
-    - npm
-    - pip
-    - gradle
 
 ### Monitoring and analytics
 
