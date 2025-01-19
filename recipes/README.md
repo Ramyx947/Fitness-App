@@ -73,3 +73,12 @@ If VS does not find poetry's virtual environment, the packages in the Python scr
 
 ### Run Static Security Analysis with Bandit
 - `bandit -r .`
+
+### Accessibility improvements:
+- Visual accessibility improvement: Text-To-Speech option
+![dashboard1.png](../screenshots/recipes_text_to_speech.png)
+- Visual accessibility improvement: Dark mode
+![dashboard1.png](../screenshots/recipes_dark_mode1.png)
+![dashboard1.png](../screenshots/recipes_dark_mode2.png)
+- Accessibility improvement: Multi-lingual support (en, es)
+![dashboard1.png](../screenshots/recipes_localisation.png)
